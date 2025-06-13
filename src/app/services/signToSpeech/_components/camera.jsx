@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Settings } from 'lucide-react';
+import { Settings, RefreshCw } from 'lucide-react';
 
 export default function CameraInterface() {
   const videoRef = useRef(null);
@@ -10,6 +10,7 @@ export default function CameraInterface() {
   const [zoom, setZoom] = useState('1x');
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [error, setError] = useState('');
+  const [facingMode, setFacingMode] = useState('user'); // 'user' for front camera, 'environment' for back camera
 
   // Debug function to check if camera is supported
   useEffect(() => {
@@ -21,10 +22,15 @@ export default function CameraInterface() {
     }
   }, []);
 
-  const enableCamera = async () => {
+  const enableCamera = async (cameraModeOverride) => {
     console.log('Starting camera initialization...');
     try {
       setError('');
+      
+      // Stop any existing stream first
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
       
       // First set cameraEnabled to true so the video element renders
       setCameraEnabled(true);
@@ -32,13 +38,20 @@ export default function CameraInterface() {
       // Short delay to ensure the video element is in the DOM
       setTimeout(async () => {
         try {
-          // Simple configuration first
+          // Use the override if provided, otherwise use the current state
+          const currentFacingMode = cameraModeOverride || facingMode;
+          
+          // Enhanced configuration with facing mode
           const constraints = { 
-            video: true,
+            video: {
+              facingMode: currentFacingMode,
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            },
             audio: false
           };
           
-          console.log('Requesting camera access with constraints:', constraints);
+          console.log(`Requesting camera access with facing mode: ${currentFacingMode}`, constraints);
           const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
           console.log('Camera access granted, stream obtained:', mediaStream);
           
@@ -101,6 +114,16 @@ export default function CameraInterface() {
     setZoom(newZoom);
   };
 
+  const switchCamera = async () => {
+    // Toggle the facing mode
+    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+    console.log(`Switching camera to ${newFacingMode} mode`);
+    setFacingMode(newFacingMode);
+    
+    // Re-enable camera with the new facing mode
+    await enableCamera(newFacingMode);
+  };
+
   useEffect(() => {
     return () => {
       // Cleanup: stop camera stream when component unmounts
@@ -160,6 +183,17 @@ export default function CameraInterface() {
                   </div>
                 )}
                 
+                {/* Camera switch button (only shown when camera is enabled) */}
+                {cameraEnabled && (
+                  <button 
+                    onClick={switchCamera}
+                    className="absolute top-4 right-4 bg-gray-800 bg-opacity-70 p-2 rounded-full text-white hover:bg-opacity-100 transition-all duration-200"
+                    aria-label="Switch camera"
+                  >
+                    <RefreshCw className="w-5 h-5" />
+                  </button>
+                )}
+                
                 {/* Translation status overlay */}
                 {isTranslating && (
                   <div className="absolute top-4 left-4">
@@ -191,6 +225,13 @@ export default function CameraInterface() {
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Current Camera Mode Indicator */}
+              <div className="text-center mt-2">
+                <p className="text-xs text-gray-500">
+                  Current: {facingMode === 'user' ? 'Front Camera' : 'Back Camera'}
+                </p>
               </div>
 
               {/* Control Buttons */}
@@ -245,6 +286,7 @@ export default function CameraInterface() {
               <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
                 <p>Camera enabled: {cameraEnabled ? 'Yes' : 'No'}</p>
                 <p>Stream active: {stream ? 'Yes' : 'No'}</p>
+                <p>Camera mode: {facingMode === 'user' ? 'Front-facing' : 'Back-facing'}</p>
               </div>
             </div>
           </div>
