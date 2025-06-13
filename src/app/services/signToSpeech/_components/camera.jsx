@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Settings, RefreshCw, Save } from 'lucide-react';
+import { Settings, RefreshCw, Save, AlertCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // Create a component that loads MediaPipe dynamically
@@ -252,6 +252,12 @@ export default function CameraInterface() {
     try {
       setError('');
       
+      // First check if we're on HTTPS (required for camera on most mobile browsers)
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        setError('Camera access requires HTTPS. Please use a secure connection.');
+        return;
+      }
+      
       // Stop any existing stream first
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -267,97 +273,84 @@ export default function CameraInterface() {
           // Use the override if provided, otherwise use the current state
           const currentFacingMode = cameraModeOverride || facingMode;
           
-          // For front camera, use a simpler approach first
-          let constraints;
+          // Start with the most basic constraints for higher compatibility
+          let constraints = { 
+            video: true,
+            audio: false
+          };
           
-          if (currentFacingMode === 'user') {
-            // Simple constraints for front camera (most reliable)
-            constraints = { 
-              video: true,
-              audio: false
-            };
-            console.log('Using simple front camera constraints');
-          } else {
-            // Try to get specific device IDs for back camera
-            const cameraDevices = await getCameraDevices();
-            
-            if (cameraDevices && currentFacingMode === 'environment') {
-              // Use device ID for back camera if available
+          if (currentFacingMode === 'environment') {
+            console.log('Attempting to use back camera with simple constraints');
+            try {
+              // Try the simplest possible environment camera constraint first
               constraints = { 
-                video: {
-                  deviceId: { exact: cameraDevices.back },
-                  width: { ideal: 1280 },
-                  height: { ideal: 720 }
-                },
+                video: { facingMode: 'environment' },
                 audio: false
               };
-              console.log('Using back camera with device ID');
-            } else {
-              // Fall back to facing mode
-              constraints = { 
-                video: {
-                  facingMode: currentFacingMode, // Removed 'exact' for better compatibility
-                  width: { ideal: 1280 },
-                  height: { ideal: 720 }
-                },
-                audio: false
-              };
-              console.log('Using facing mode fallback');
+            } catch (err) {
+              console.log('Simple back camera constraints failed, falling back to default');
             }
           }
           
           console.log(`Requesting camera access:`, constraints);
-          const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-          console.log('Camera access granted, stream obtained:', mediaStream);
           
-          setStream(mediaStream);
-          
-          if (videoRef.current) {
-            console.log('Setting video source object');
-            videoRef.current.srcObject = mediaStream;
+          try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+            console.log('Camera access granted with simple constraints:', mediaStream);
             
-            // Set canvas dimensions to match video
-            if (canvasRef.current) {
-              canvasRef.current.width = videoRef.current.videoWidth || 1280;
-              canvasRef.current.height = videoRef.current.videoHeight || 720;
-            }
+            setStream(mediaStream);
+            setVideoSource(mediaStream);
+          } catch (simpleErr) {
+            console.error('Simple constraints failed:', simpleErr);
             
-            // Try playing immediately
+            // Try device enumeration as a last resort
             try {
-              await videoRef.current.play();
-              console.log('Video playing started immediately');
-            } catch (e) {
-              console.log('Immediate play failed, will try after metadata loads', e);
-            }
-            
-            // Also set up the metadata handler
-            videoRef.current.onloadedmetadata = async () => {
-              console.log('Video metadata loaded, attempting to play');
-              try {
-                await videoRef.current.play();
-                console.log('Video playing successfully');
-                
-                // Update canvas dimensions once video metadata is loaded
-                if (canvasRef.current) {
-                  canvasRef.current.width = videoRef.current.videoWidth;
-                  canvasRef.current.height = videoRef.current.videoHeight;
-                }
-              } catch (e) {
-                console.error("Error playing video:", e);
-                setError("Could not play video stream: " + e.message);
+              const devices = await navigator.mediaDevices.enumerateDevices();
+              const videoDevices = devices.filter(device => device.kind === 'videoinput');
+              
+              if (videoDevices.length === 0) {
+                throw new Error('No video input devices found');
               }
-            };
-          } else {
-            console.error('Video ref is still not available');
-            setError('Video element not found');
-            setCameraEnabled(false);  // Reset if we couldn't find the video element
+              
+              // Choose appropriate camera (first or last device depending on mode)
+              const deviceIndex = currentFacingMode === 'environment' && videoDevices.length > 1 
+                ? videoDevices.length - 1  // Usually back camera
+                : 0;  // Usually front camera
+              
+              const deviceId = videoDevices[deviceIndex].deviceId;
+              
+              const deviceConstraints = {
+                video: { deviceId: { exact: deviceId } },
+                audio: false
+              };
+              
+              console.log('Trying with specific device ID:', deviceConstraints);
+              const deviceStream = await navigator.mediaDevices.getUserMedia(deviceConstraints);
+              
+              setStream(deviceStream);
+              setVideoSource(deviceStream);
+            } catch (deviceErr) {
+              console.error('Device-specific approach failed:', deviceErr);
+              throw new Error(`Could not access camera: ${simpleErr.message}`);
+            }
           }
         } catch (err) {
           console.error('Camera access error:', err);
-          setError('Camera error: ' + (err.message || 'Unknown error'));
-          setCameraEnabled(false);  // Reset camera enabled state on error
+          
+          // More user-friendly error messages
+          if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            setError('Camera permission denied. Please allow camera access and try again.');
+          } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+            setError('No camera found on your device.');
+          } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+            setError('Your camera is in use by another application. Please close other apps and try again.');
+          } else {
+            setError(`Failed to acquire camera feed: ${err.message}`);
+          }
+          
+          setCameraEnabled(false);
         }
-      }, 300);  // Increased delay to ensure DOM updates
+      }, 500);  // Increased delay for mobile devices
     } catch (err) {
       console.error('Initial camera setup error:', err);
       setError('Setup error: ' + (err.message || 'Unknown error'));
@@ -386,6 +379,17 @@ export default function CameraInterface() {
     try {
       // First stop any existing streams
       if (stream) {
+        // Stop MediaPipe camera if running
+        if (cameraRef.current) {
+          cameraRef.current.stop();
+        }
+        
+        // Pause video element to stop any pending play requests
+        if (videoRef.current) {
+          videoRef.current.pause();
+        }
+        
+        // Stop all tracks
         stream.getTracks().forEach(track => {
           track.stop();
         });
@@ -397,14 +401,87 @@ export default function CameraInterface() {
       console.log(`Switching camera to ${newFacingMode} mode`);
       setFacingMode(newFacingMode);
       
-      // Small delay to ensure tracks are fully stopped
+      // Longer delay to ensure tracks are fully stopped and browser has time to release camera
       setTimeout(async () => {
         // Re-enable camera with the new facing mode
         await enableCamera(newFacingMode);
-      }, 300);
+      }, 500); // Increased delay for better reliability
     } catch (err) {
       console.error('Error switching camera:', err);
       setError(`Failed to switch camera: ${err.message}`);
+    }
+  };
+
+  // Update the setVideoSource function to handle play interruptions
+  const setVideoSource = async (mediaStream) => {
+    if (!videoRef.current) {
+      console.error('Video element not available');
+      setError('Video element not found');
+      return false;
+    }
+    
+    try {
+      // First stop any existing play operations by pausing the video
+      if (videoRef.current.srcObject) {
+        videoRef.current.pause();
+      }
+      
+      // Clear any previous event listeners
+      const oldSrc = videoRef.current.srcObject;
+      videoRef.current.srcObject = null;
+      
+      // If there was a previous stream, give the browser a moment to clean up
+      if (oldSrc) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // Now set the new stream
+      videoRef.current.srcObject = mediaStream;
+      
+      // Set canvas dimensions to match video
+      if (canvasRef.current) {
+        canvasRef.current.width = videoRef.current.videoWidth || 1280;
+        canvasRef.current.height = videoRef.current.videoHeight || 720;
+      }
+      
+      // Use a more reliable play approach with retries
+      let playAttempts = 0;
+      const maxPlayAttempts = 3;
+      
+      const attemptPlay = async () => {
+        try {
+          playAttempts++;
+          await videoRef.current.play();
+          console.log('Video playing successfully');
+          
+          // Update canvas dimensions once video is playing
+          if (canvasRef.current) {
+            canvasRef.current.width = videoRef.current.videoWidth;
+            canvasRef.current.height = videoRef.current.videoHeight;
+          }
+          
+          return true;
+        } catch (err) {
+          console.warn(`Play attempt ${playAttempts} failed:`, err.message);
+          
+          if (err.name === 'AbortError' || err.name === 'NotAllowedError') {
+            // For play interrupted errors, wait and retry
+            if (playAttempts < maxPlayAttempts) {
+              console.log(`Retrying play() in 300ms, attempt ${playAttempts+1}/${maxPlayAttempts}`);
+              await new Promise(resolve => setTimeout(resolve, 300));
+              return attemptPlay();
+            }
+          }
+          
+          throw err; // Re-throw if max attempts reached or for other errors
+        }
+      };
+      
+      return await attemptPlay();
+    } catch (e) {
+      console.error("Error playing video:", e);
+      setError("Could not start video source: " + e.message);
+      return false;
     }
   };
 
