@@ -1,7 +1,13 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { Settings, RefreshCw, Save } from 'lucide-react';
-import Script from 'next/script';
+import dynamic from 'next/dynamic';
+
+// Create a component that loads MediaPipe dynamically
+const MediaPipeLoader = dynamic(
+  () => import('./MediaPipeLoader'),
+  { ssr: false }
+);
 
 export default function CameraInterface() {
   const videoRef = useRef(null);
@@ -18,11 +24,24 @@ export default function CameraInterface() {
   const [landmarkCount, setLandmarkCount] = useState(0);
   const handsRef = useRef(null);
   const cameraRef = useRef(null);
-  const [mediaPipeLoaded, setMediaPipeLoaded] = useState(false);
+  const [mediaPipeReady, setMediaPipeReady] = useState(false);
+  // Add a new ref to store the interval ID
+  const saveIntervalRef = useRef(null);
+
+  // Add the missing handleMediaPipeReady function
+  const handleMediaPipeReady = (hands, camera, drawUtils) => {
+    console.log("MediaPipe ready with:", hands, camera, drawUtils);
+    setMediaPipeReady(true);
+    window.Hands = hands;
+    window.Camera = camera;
+    window.drawConnectors = drawUtils.drawConnectors;
+    window.drawLandmarks = drawUtils.drawLandmarks;
+    window.HAND_CONNECTIONS = drawUtils.HAND_CONNECTIONS;
+  };
 
   // Initialize MediaPipe Hands after scripts are loaded
   useEffect(() => {
-    if (!mediaPipeLoaded || !cameraEnabled || !stream) return;
+    if (!mediaPipeReady || !cameraEnabled || !stream) return;
 
     const initializeMediaPipe = async () => {
       try {
@@ -33,7 +52,7 @@ export default function CameraInterface() {
           return;
         }
 
-        // Initialize Hands using window object
+        // Initialize Hands
         handsRef.current = new window.Hands({
           locateFile: (file) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
@@ -74,7 +93,8 @@ export default function CameraInterface() {
     };
 
     initializeMediaPipe();
-
+    
+    // Cleanup function
     return () => {
       if (cameraRef.current) {
         cameraRef.current.stop();
@@ -83,13 +103,7 @@ export default function CameraInterface() {
         handsRef.current.close();
       }
     };
-  }, [cameraEnabled, stream, isPaused, mediaPipeLoaded]);
-
-  // Handle when all MediaPipe scripts are loaded
-  const handleMediaPipeLoaded = () => {
-    console.log('MediaPipe scripts loaded successfully');
-    setMediaPipeLoaded(true);
-  };
+  }, [cameraEnabled, stream, isPaused, mediaPipeReady]);
 
   // Update handleHandResults to use window.drawConnectors and window.drawLandmarks
   const handleHandResults = (results) => {
@@ -134,43 +148,76 @@ export default function CameraInterface() {
     }
   };
 
-  // Save landmarks to a file
-  const saveLandmarks = () => {
+  // Modified saveLandmarks function to save to a specific folder
+  const saveLandmarks = async (resetAfterSave = true) => {
     if (handLandmarks.length === 0) {
-      setError('No landmarks collected yet');
+      console.log('No landmarks to save');
       return;
     }
 
-    const dataStr = JSON.stringify(handLandmarks, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `hand_landmarks_${new Date().toISOString()}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    // Clear collected landmarks after saving
-    setHandLandmarks([]);
-    setLandmarkCount(0);
-    
-    console.log(`Saved ${handLandmarks.length} landmark frames`);
+    try {
+      // Send landmarks to the API endpoint
+      const response = await fetch('/api/saveLandmarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(handLandmarks),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log(`Saved ${handLandmarks.length} landmark frames at ${new Date().toLocaleTimeString()}`);
+      } else {
+        console.error('Error saving landmarks:', result.message);
+        setError(`Failed to save landmarks: ${result.message}`);
+      }
+      
+      // Only reset landmarks if requested (typically after manual save)
+      if (resetAfterSave) {
+        setHandLandmarks([]);
+        setLandmarkCount(0);
+      }
+    } catch (err) {
+      console.error('Error saving landmarks:', err);
+      setError(`Failed to save landmarks: ${err.message}`);
+    }
   };
 
-  // Toggle landmark collection
+  // Modified toggleCollection function with interval handling for async saveLandmarks
   const toggleCollection = () => {
     if (isCollecting) {
-      // Stop collecting and save
+      // Stop collecting
       setIsCollecting(false);
+      
+      // Clear the saving interval
+      if (saveIntervalRef.current) {
+        clearInterval(saveIntervalRef.current);
+        saveIntervalRef.current = null;
+      }
+      
+      // Final save of remaining landmarks
       if (handLandmarks.length > 0) {
-        saveLandmarks();
+        saveLandmarks(true);
       }
     } else {
       // Start collecting
       setHandLandmarks([]);
       setLandmarkCount(0);
       setIsCollecting(true);
+      
+      // Set up interval to save landmarks every 1.5 seconds
+      saveIntervalRef.current = setInterval(() => {
+        if (handLandmarks.length > 0) {
+          // Save without clearing the landmarks array
+          saveLandmarks(false).then(() => {
+            // Clear landmarks after saving to avoid duplicates
+            setHandLandmarks([]);
+            // Keep the count for UI purposes
+          });
+        }
+      }, 1500); // 1.5 seconds
     }
   };
 
@@ -298,216 +345,206 @@ export default function CameraInterface() {
     };
   }, [stream]);
 
+  // Add cleanup for the interval when component unmounts
+  useEffect(() => {
+    return () => {
+      if (saveIntervalRef.current) {
+        clearInterval(saveIntervalRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <>
-      {/* Load MediaPipe scripts properly */}
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"
-        strategy="beforeInteractive"
-        onLoad={() => console.log("Hands script loaded")}
-      />
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
-        strategy="beforeInteractive"
-        onLoad={() => console.log("Drawing utils loaded")}
-      />
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
-        strategy="beforeInteractive"
-        onLoad={handleMediaPipeLoaded}
-      />
-
-      {/* Rest of your UI component */}
-      <div className="bg-gray-50 min-h-screen relative overflow-hidden">
-        {/* Background decorative element */}
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-tl from-blue-500 to-purple-600 rounded-full opacity-20 blur-3xl"></div>
-        
-        <div className="container mx-auto px-6 py-12">
-          <div className="max-w-4xl mx-auto">
-            {/* Camera Interface Card */}
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-              {/* Header */}
-              <div className="bg-gray-200 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Settings className="w-6 h-6 text-gray-700" />
-                </div>
-                <h2 className="text-xl font-semibold">
-                  <span className="text-blue-500">Camera</span> Input
-                </h2>
-                <div></div>
+    <div className="bg-gray-50 min-h-screen relative overflow-hidden">
+      {/* Add the MediaPipeLoader component with the handleMediaPipeReady function */}
+      <MediaPipeLoader onReady={handleMediaPipeReady} />
+      
+      {/* Rest of your UI */}
+      <div className="container mx-auto px-6 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Camera Interface Card */}
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="bg-gray-200 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Settings className="w-6 h-6 text-gray-700" />
               </div>
+              <h2 className="text-xl font-semibold">
+                <span className="text-blue-500">Camera</span> Input
+              </h2>
+              <div></div>
+            </div>
 
-              {/* Video Container */}
-              <div className="p-6">
-                <div className="relative bg-black rounded-2xl overflow-hidden" style={{ height: "360px" }}>
-                  {cameraEnabled ? (
-                    <>
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        width="100%"
-                        height="100%"
-                        style={{
-                          backgroundColor: "black",
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                          transform: `scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
-                        }}
-                      />
-                      <canvas
-                        ref={canvasRef}
-                        className="absolute top-0 left-0 w-full h-full"
-                        style={{
-                          transform: `scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <div className="w-8 h-8 bg-gray-500 rounded-full"></div>
-                        </div>
-                        <p className="text-gray-400">Camera not enabled</p>
+            {/* Video Container */}
+            <div className="p-6">
+              <div className="relative bg-black rounded-2xl overflow-hidden" style={{ height: "360px" }}>
+                {cameraEnabled ? (
+                  <>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      width="100%"
+                      height="100%"
+                      style={{
+                        backgroundColor: "black",
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        transform: `scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
+                      }}
+                    />
+                    <canvas
+                      ref={canvasRef}
+                      className="absolute top-0 left-0 w-full h-full"
+                      style={{
+                        transform: `scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
+                      }}
+                    />
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="w-8 h-8 bg-gray-500 rounded-full"></div>
                       </div>
+                      <p className="text-gray-400">Camera not enabled</p>
                     </div>
-                  )}
-                  
-                  {/* Camera switch button (only shown when camera is enabled) */}
-                  {cameraEnabled && (
-                    <div className="absolute top-4 right-4 flex flex-col space-y-2">
-                      <button 
-                        onClick={switchCamera}
-                        className="bg-gray-800 bg-opacity-70 p-2 rounded-full text-white hover:bg-opacity-100 transition-all duration-200"
-                        aria-label="Switch camera"
-                      >
-                        <RefreshCw className="w-5 h-5" />
-                      </button>
-                      
-                      <button 
-                        onClick={toggleCollection}
-                        className={`${isCollecting ? 'bg-red-500' : 'bg-green-500'} bg-opacity-70 p-2 rounded-full text-white hover:bg-opacity-100 transition-all duration-200`}
-                        aria-label={isCollecting ? "Stop collecting" : "Start collecting"}
-                      >
-                        <Save className="w-5 h-5" />
-                      </button>
-                    </div>
-                  )}
-                  
-                  {/* Translation status overlay */}
-                  {isTranslating && (
-                    <div className="absolute top-4 left-4">
-                      <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                        <span>{isPaused ? 'Paused' : 'Translating'}</span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Collection status overlay */}
-                  {isCollecting && (
-                    <div className="absolute bottom-4 left-4">
-                      <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                        <span>Collecting: {landmarkCount} frames</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Zoom Controls */}
-                <div className="flex justify-center mt-6">
-                  <div className="text-center">
-                    <p className="text-gray-600 font-medium mb-2">Zoom</p>
-                    <div className="bg-blue-100 rounded-full p-1 inline-flex space-x-1">
-                      {['0.5x', '1x', '2x'].map((zoomLevel) => (
-                        <button
-                          key={zoomLevel}
-                          onClick={() => handleZoomChange(zoomLevel)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                            zoom === zoomLevel
-                              ? 'bg-blue-500 text-white shadow-md'
-                              : 'text-blue-600 hover:bg-blue-200'
-                          }`}
-                        >
-                          {zoomLevel}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Current Camera Mode Indicator */}
-                <div className="text-center mt-2">
-                  <p className="text-xs text-gray-500">
-                    Current: {facingMode === 'user' ? 'Front Camera' : 'Back Camera'}
-                  </p>
-                </div>
-
-                {/* Control Buttons */}
-                <div className="flex justify-center space-x-4 mt-8">
-                  <button
-                    onClick={enableCamera}
-                    disabled={cameraEnabled}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                      cameraEnabled
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
-                    }`}
-                  >
-                    {cameraEnabled ? 'Camera Enabled' : 'Allow Camera'}
-                  </button>
-
-                  <button
-                    onClick={startTranslation}
-                    disabled={!cameraEnabled}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                      !cameraEnabled
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : isTranslating
-                        ? 'bg-green-500 text-white'
-                        : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
-                    }`}
-                  >
-                    {isTranslating ? 'Translating...' : 'Start Translation'}
-                  </button>
-
-                  <button
-                    onClick={pauseTranslation}
-                    disabled={!isTranslating}
-                    className={`px-6 py-3 rounded-xl font-medium border-2 transition-all duration-200 ${
-                      !isTranslating
-                        ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                        : 'border-blue-500 text-blue-500 hover:bg-blue-50'
-                    }`}
-                  >
-                    {isPaused ? 'Resume' : 'Pause'}
-                  </button>
-                </div>
-
-                {/* Error Message */}
-                {error && (
-                  <div className="mt-4 p-4 bg-red-100 border border-red-300 rounded-lg">
-                    <p className="text-red-700 text-center">{error}</p>
                   </div>
                 )}
+                
+                {/* Camera switch button (only shown when camera is enabled) */}
+                {cameraEnabled && (
+                  <div className="absolute top-4 right-4 flex flex-col space-y-2">
+                    <button 
+                      onClick={switchCamera}
+                      className="bg-gray-800 bg-opacity-70 p-2 rounded-full text-white hover:bg-opacity-100 transition-all duration-200"
+                      aria-label="Switch camera"
+                    >
+                      <RefreshCw className="w-5 h-5" />
+                    </button>
+                    
+                    <button 
+                      onClick={toggleCollection}
+                      className={`${isCollecting ? 'bg-red-500' : 'bg-green-500'} bg-opacity-70 p-2 rounded-full text-white hover:bg-opacity-100 transition-all duration-200`}
+                      aria-label={isCollecting ? "Stop collecting" : "Start collecting"}
+                    >
+                      <Save className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+                
+                {/* Translation status overlay */}
+                {isTranslating && (
+                  <div className="absolute top-4 left-4">
+                    <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <span>{isPaused ? 'Paused' : 'Translating'}</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Collection status overlay */}
+                {isCollecting && (
+                  <div className="absolute bottom-4 left-4">
+                    <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <span>Collecting: {landmarkCount} frames</span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
-                {/* Debugging info */}
-                <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
-                  <p>Camera enabled: {cameraEnabled ? 'Yes' : 'No'}</p>
-                  <p>Stream active: {stream ? 'Yes' : 'No'}</p>
-                  <p>Camera mode: {facingMode === 'user' ? 'Front-facing' : 'Back-facing'}</p>
-                  <p>Collecting landmarks: {isCollecting ? 'Yes' : 'No'}</p>
-                  <p>Collected frames: {landmarkCount}</p>
+              {/* Zoom Controls */}
+              <div className="flex justify-center mt-6">
+                <div className="text-center">
+                  <p className="text-gray-600 font-medium mb-2">Zoom</p>
+                  <div className="bg-blue-100 rounded-full p-1 inline-flex space-x-1">
+                    {['0.5x', '1x', '2x'].map((zoomLevel) => (
+                      <button
+                        key={zoomLevel}
+                        onClick={() => handleZoomChange(zoomLevel)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                          zoom === zoomLevel
+                            ? 'bg-blue-500 text-white shadow-md'
+                            : 'text-blue-600 hover:bg-blue-200'
+                        }`}
+                      >
+                        {zoomLevel}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              </div>
+
+              {/* Current Camera Mode Indicator */}
+              <div className="text-center mt-2">
+                <p className="text-xs text-gray-500">
+                  Current: {facingMode === 'user' ? 'Front Camera' : 'Back Camera'}
+                </p>
+              </div>
+
+              {/* Control Buttons */}
+              <div className="flex justify-center space-x-4 mt-8">
+                <button
+                  onClick={enableCamera}
+                  disabled={cameraEnabled}
+                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    cameraEnabled
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
+                  }`}
+                >
+                  {cameraEnabled ? 'Camera Enabled' : 'Allow Camera'}
+                </button>
+
+                <button
+                  onClick={startTranslation}
+                  disabled={!cameraEnabled}
+                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    !cameraEnabled
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : isTranslating
+                      ? 'bg-green-500 text-white'
+                      : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
+                  }`}
+                >
+                  {isTranslating ? 'Translating...' : 'Start Translation'}
+                </button>
+
+                <button
+                  onClick={pauseTranslation}
+                  disabled={!isTranslating}
+                  className={`px-6 py-3 rounded-xl font-medium border-2 transition-all duration-200 ${
+                    !isTranslating
+                      ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                      : 'border-blue-500 text-blue-500 hover:bg-blue-50'
+                  }`}
+                >
+                  {isPaused ? 'Resume' : 'Pause'}
+                </button>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="mt-4 p-4 bg-red-100 border border-red-300 rounded-lg">
+                  <p className="text-red-700 text-center">{error}</p>
+                </div>
+              )}
+
+              {/* Debugging info */}
+              <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
+                <p>Camera enabled: {cameraEnabled ? 'Yes' : 'No'}</p>
+                <p>Stream active: {stream ? 'Yes' : 'No'}</p>
+                <p>Camera mode: {facingMode === 'user' ? 'Front-facing' : 'Back-facing'}</p>
+                <p>Collecting landmarks: {isCollecting ? 'Yes' : 'No'}</p>
+                <p>Collected frames: {landmarkCount}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
