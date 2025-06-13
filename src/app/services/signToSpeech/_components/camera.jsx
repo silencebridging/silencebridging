@@ -221,6 +221,32 @@ export default function CameraInterface() {
     }
   };
 
+  // Add this new function to your component
+  const getCameraDevices = async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      console.log('Available video devices:', videoDevices);
+      
+      if (videoDevices.length > 1) {
+        // Usually the first device is the front camera and the second is the back camera on mobile
+        const frontCamera = videoDevices[0];
+        const backCamera = videoDevices[1]; 
+        
+        return {
+          front: frontCamera.deviceId,
+          back: backCamera.deviceId
+        };
+      }
+      
+      return null;
+    } catch (err) {
+      console.error('Error getting camera devices:', err);
+      return null;
+    }
+  };
+
+  // Then modify your enableCamera function:
   const enableCamera = async (cameraModeOverride) => {
     console.log('Starting camera initialization...');
     try {
@@ -229,28 +255,58 @@ export default function CameraInterface() {
       // Stop any existing stream first
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
+        setStream(null);
       }
       
       // First set cameraEnabled to true so the video element renders
       setCameraEnabled(true);
       
-      // Short delay to ensure the video element is in the DOM
+      // Short delay to ensure the video element is in the DOM and previous streams are closed
       setTimeout(async () => {
         try {
           // Use the override if provided, otherwise use the current state
           const currentFacingMode = cameraModeOverride || facingMode;
           
-          // Enhanced configuration with facing mode
-          const constraints = { 
-            video: {
-              facingMode: currentFacingMode,
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            },
-            audio: false
-          };
+          // For front camera, use a simpler approach first
+          let constraints;
           
-          console.log(`Requesting camera access with facing mode: ${currentFacingMode}`, constraints);
+          if (currentFacingMode === 'user') {
+            // Simple constraints for front camera (most reliable)
+            constraints = { 
+              video: true,
+              audio: false
+            };
+            console.log('Using simple front camera constraints');
+          } else {
+            // Try to get specific device IDs for back camera
+            const cameraDevices = await getCameraDevices();
+            
+            if (cameraDevices && currentFacingMode === 'environment') {
+              // Use device ID for back camera if available
+              constraints = { 
+                video: {
+                  deviceId: { exact: cameraDevices.back },
+                  width: { ideal: 1280 },
+                  height: { ideal: 720 }
+                },
+                audio: false
+              };
+              console.log('Using back camera with device ID');
+            } else {
+              // Fall back to facing mode
+              constraints = { 
+                video: {
+                  facingMode: currentFacingMode, // Removed 'exact' for better compatibility
+                  width: { ideal: 1280 },
+                  height: { ideal: 720 }
+                },
+                audio: false
+              };
+              console.log('Using facing mode fallback');
+            }
+          }
+          
+          console.log(`Requesting camera access:`, constraints);
           const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
           console.log('Camera access granted, stream obtained:', mediaStream);
           
@@ -301,7 +357,7 @@ export default function CameraInterface() {
           setError('Camera error: ' + (err.message || 'Unknown error'));
           setCameraEnabled(false);  // Reset camera enabled state on error
         }
-      }, 100);  // Small delay to ensure DOM updates
+      }, 300);  // Increased delay to ensure DOM updates
     } catch (err) {
       console.error('Initial camera setup error:', err);
       setError('Setup error: ' + (err.message || 'Unknown error'));
@@ -327,13 +383,29 @@ export default function CameraInterface() {
   };
 
   const switchCamera = async () => {
-    // Toggle the facing mode
-    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
-    console.log(`Switching camera to ${newFacingMode} mode`);
-    setFacingMode(newFacingMode);
-    
-    // Re-enable camera with the new facing mode
-    await enableCamera(newFacingMode);
+    try {
+      // First stop any existing streams
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          track.stop();
+        });
+        setStream(null);
+      }
+      
+      // Toggle the facing mode
+      const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+      console.log(`Switching camera to ${newFacingMode} mode`);
+      setFacingMode(newFacingMode);
+      
+      // Small delay to ensure tracks are fully stopped
+      setTimeout(async () => {
+        // Re-enable camera with the new facing mode
+        await enableCamera(newFacingMode);
+      }, 300);
+    } catch (err) {
+      console.error('Error switching camera:', err);
+      setError(`Failed to switch camera: ${err.message}`);
+    }
   };
 
   useEffect(() => {
@@ -530,6 +602,16 @@ export default function CameraInterface() {
               {error && (
                 <div className="mt-4 p-4 bg-red-100 border border-red-300 rounded-lg">
                   <p className="text-red-700 text-center">{error}</p>
+                  {error.includes('Camera error') && (
+                    <div className="mt-2">
+                      <p className="text-sm text-red-600">Troubleshooting tips:</p>
+                      <ul className="list-disc pl-5 text-sm text-red-600">
+                        <li>Make sure camera permissions are granted</li>
+                        <li>Try reloading the page</li>
+                        <li>Your device may not support switching cameras</li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
               )}
 
