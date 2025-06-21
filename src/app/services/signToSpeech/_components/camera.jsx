@@ -10,6 +10,7 @@ const MediaPipeLoader = dynamic(
 );
 
 export default function CameraInterface() {
+  // Existing state variables and refs
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [stream, setStream] = useState(null);
@@ -25,19 +26,150 @@ export default function CameraInterface() {
   const handsRef = useRef(null);
   const cameraRef = useRef(null);
   const [mediaPipeReady, setMediaPipeReady] = useState(false);
-  // Add a new ref to store the interval ID
   const saveIntervalRef = useRef(null);
 
-  // Add the missing handleMediaPipeReady function
-  const handleMediaPipeReady = (hands, camera, drawUtils) => {
-    console.log("MediaPipe ready with:", hands, camera, drawUtils);
+  // Add this function to handle MediaPipe ready event
+  const handleMediaPipeReady = () => {
+    console.log('MediaPipe libraries loaded successfully');
     setMediaPipeReady(true);
-    window.Hands = hands;
-    window.Camera = camera;
-    window.drawConnectors = drawUtils.drawConnectors;
-    window.drawLandmarks = drawUtils.drawLandmarks;
-    window.HAND_CONNECTIONS = drawUtils.HAND_CONNECTIONS;
   };
+
+  // New state for letter prediction
+  const [predictedLetter, setPredictedLetter] = useState('');
+  const [isPredicting, setIsPredicting] = useState(false);
+  const predictionTimeoutRef = useRef(null);
+
+  // Updated prediction function to format landmarks correctly
+  const predictLetterFromLandmarks = async (landmarks) => {
+    // Skip prediction if we don't have landmarks or already predicting
+    if (!landmarks || landmarks.length === 0 || isPredicting) return;
+    
+    try {
+      // Set predicting state to true to prevent multiple simultaneous requests
+      setIsPredicting(true);
+      
+      // Format landmarks as a plain array of [x,y,z] coordinates
+      // MediaPipe returns landmarks as objects with x,y,z properties
+      // We need to convert them to simple arrays
+      const formattedLandmarks = landmarks.map(landmark => [
+        landmark.x, 
+        landmark.y, 
+        landmark.z
+      ]);
+      
+      console.log('Sending landmarks to API:', formattedLandmarks);
+      
+      // Make API request to predict letter with correctly formatted landmarks
+      const response = await fetch('https://production-model.onrender.com/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ landmarks: formattedLandmarks })
+      });
+
+      // Handle non-OK responses
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `HTTP error ${response.status}`);
+      }
+
+      // Parse the response and update state
+      const data = await response.json();
+      setPredictedLetter(data.letter);
+      console.log('Predicted Letter:', data.letter);
+      
+    } catch (error) {
+      console.error('Prediction error:', error);
+      setError(`Letter prediction failed: ${error.message}`);
+    } finally {
+      // Reset predicting state after a short delay to prevent API spam
+      setTimeout(() => {
+        setIsPredicting(false);
+      }, 500);
+    }
+  };
+
+  // Modified handleHandResults to include prediction
+  const handleHandResults = (results) => {
+    if (!results || !results.multiHandLandmarks) return;
+
+    // Draw hands on canvas if canvas is available
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      const { width, height } = canvas;
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
+      
+      // Make sure the drawing utilities are loaded
+      if (!window.drawConnectors || !window.drawLandmarks || !window.HAND_CONNECTIONS) {
+        return;
+      }
+      
+      // Draw detected hands
+      if (results.multiHandLandmarks) {
+        for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+          const landmarks = results.multiHandLandmarks[i];
+          const handedness = results.multiHandedness[i].label; // "Left" or "Right"
+          
+          // Set color based on handedness (Left hand in browser means right hand in reality due to mirroring)
+          const color = handedness === "Left" ? "#FF0000" : "#00FF00";
+          
+          // Draw connectors and landmarks using window objects
+          window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, { color });
+          window.drawLandmarks(ctx, landmarks, { color, radius: 3 });
+          
+          // If collecting and this is the right hand (appears as "Left" in mirrored view)
+          if (isCollecting && handedness === "Left") {
+            // Store landmarks
+            const rightHandLandmarks = [...landmarks];
+            setHandLandmarks(prevLandmarks => [...prevLandmarks, rightHandLandmarks]);
+            setLandmarkCount(prev => prev + 1);
+          }
+          
+          // Predict letter if we're translating and this is the right hand
+          if (isTranslating && !isPaused && handedness === "Left") {
+            // Clear previous prediction timeout
+            if (predictionTimeoutRef.current) {
+              clearTimeout(predictionTimeoutRef.current);
+            }
+            
+            // Debounce prediction to avoid API spam - only predict after hand is stable for 500ms
+            predictionTimeoutRef.current = setTimeout(() => {
+              predictLetterFromLandmarks(landmarks);
+            }, 500);
+          }
+        }
+      }
+    }
+  };
+
+  // Add cleanup for prediction timeout
+  useEffect(() => {
+    return () => {
+      // Cleanup: stop camera stream when component unmounts
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      // Clear prediction timeout
+      if (predictionTimeoutRef.current) {
+        clearTimeout(predictionTimeoutRef.current);
+      }
+    };
+  }, [stream]);
+
+  // Add cleanup for the intervals when component unmounts
+  useEffect(() => {
+    return () => {
+      if (saveIntervalRef.current) {
+        clearInterval(saveIntervalRef.current);
+      }
+      if (predictionTimeoutRef.current) {
+        clearTimeout(predictionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Initialize MediaPipe Hands after scripts are loaded
   useEffect(() => {
@@ -104,49 +236,6 @@ export default function CameraInterface() {
       }
     };
   }, [cameraEnabled, stream, isPaused, mediaPipeReady]);
-
-  // Update handleHandResults to use window.drawConnectors and window.drawLandmarks
-  const handleHandResults = (results) => {
-    if (!results || !results.multiHandLandmarks) return;
-
-    // Draw hands on canvas if canvas is available
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      const { width, height } = canvas;
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, width, height);
-      
-      // Make sure the drawing utilities are loaded
-      if (!window.drawConnectors || !window.drawLandmarks || !window.HAND_CONNECTIONS) {
-        return;
-      }
-      
-      // Draw detected hands
-      if (results.multiHandLandmarks) {
-        for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-          const landmarks = results.multiHandLandmarks[i];
-          const handedness = results.multiHandedness[i].label; // "Left" or "Right"
-          
-          // Set color based on handedness (Left hand in browser means right hand in reality due to mirroring)
-          const color = handedness === "Left" ? "#FF0000" : "#00FF00";
-          
-          // Draw connectors and landmarks using window objects
-          window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, { color });
-          window.drawLandmarks(ctx, landmarks, { color, radius: 3 });
-          
-          // If collecting and this is the right hand (appears as "Left" in mirrored view)
-          if (isCollecting && handedness === "Left") {
-            // Store landmarks
-            const rightHandLandmarks = [...landmarks];
-            setHandLandmarks(prevLandmarks => [...prevLandmarks, rightHandLandmarks]);
-            setLandmarkCount(prev => prev + 1);
-          }
-        }
-      }
-    }
-  };
 
   // Modified saveLandmarks function to save to a specific folder
   const saveLandmarks = async (resetAfterSave = true) => {
@@ -365,10 +454,17 @@ export default function CameraInterface() {
     }
     setIsTranslating(true);
     setIsPaused(false);
+    setPredictedLetter(''); // Reset any previous prediction
   };
 
   const pauseTranslation = () => {
     setIsPaused(!isPaused);
+    if (!isPaused) {
+      // If pausing, clear any pending prediction
+      if (predictionTimeoutRef.current) {
+        clearTimeout(predictionTimeoutRef.current);
+      }
+    }
   };
 
   const handleZoomChange = (newZoom) => {
@@ -551,6 +647,17 @@ export default function CameraInterface() {
                         transform: `scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
                       }}
                     />
+                    
+                    {/* Prediction Display - Show when translating */}
+                    {isTranslating && !isPaused && (
+                      <div className="absolute bottom-4 right-4 bg-blue-600 text-white text-4xl font-bold w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
+                        {isPredicting ? (
+                          <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          predictedLetter || '?'
+                        )}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -604,6 +711,34 @@ export default function CameraInterface() {
                   </div>
                 )}
               </div>
+              
+              {/* Prediction Display - Larger display below video */}
+              {isTranslating && !isPaused && (
+                <div className="mt-4 p-4 bg-gray-100 rounded-xl">
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">Predicted Sign</h3>
+                  <div className="flex items-center">
+                    <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mr-4">
+                      <span className="text-white text-5xl font-bold">
+                        {isPredicting ? (
+                          <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          predictedLetter || '?'
+                        )}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">
+                        {isPredicting ? 'Analyzing hand position...' : 
+                         predictedLetter ? `Detected letter: ${predictedLetter}` : 
+                         'Make a sign with your right hand'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Hold your hand steady for best results
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Zoom Controls */}
               <div className="flex justify-center mt-6">
@@ -692,13 +827,15 @@ export default function CameraInterface() {
                 </div>
               )}
 
-              {/* Debugging info */}
+              {/* Debugging info - updated to include prediction status */}
               <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
                 <p>Camera enabled: {cameraEnabled ? 'Yes' : 'No'}</p>
                 <p>Stream active: {stream ? 'Yes' : 'No'}</p>
                 <p>Camera mode: {facingMode === 'user' ? 'Front-facing' : 'Back-facing'}</p>
                 <p>Collecting landmarks: {isCollecting ? 'Yes' : 'No'}</p>
                 <p>Collected frames: {landmarkCount}</p>
+                <p>Translation active: {isTranslating ? (isPaused ? 'Paused' : 'Yes') : 'No'}</p>
+                <p>Current prediction: {predictedLetter || 'None'}</p>
               </div>
             </div>
           </div>
