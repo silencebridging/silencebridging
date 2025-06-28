@@ -874,24 +874,24 @@ export default function CameraInterface() {
                     </p>
                   </div>
 
-                  {/* Control Buttons */}
-                  <div className="flex justify-center space-x-4 mt-8">
+                  {/* Control Buttons - Updated for responsiveness */}
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 mt-6 sm:mt-8">
                     <button
                       onClick={enableCamera}
                       disabled={cameraEnabled}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                      className={`px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 flex-1 max-w-[180px] ${
                         cameraEnabled
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                           : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
                       }`}
                     >
-                      {cameraEnabled ? 'Camera Enabled' : 'Allow Camera'}
+                      {cameraEnabled ? 'Camera On' : 'Allow Camera'}
                     </button>
 
                     <button
                       onClick={startTranslation}
                       disabled={!cameraEnabled}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                      className={`px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 flex-1 max-w-[180px] ${
                         !cameraEnabled
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                           : isTranslating
@@ -899,13 +899,13 @@ export default function CameraInterface() {
                           : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
                       }`}
                     >
-                      {isTranslating ? 'Translating...' : 'Start Translation'}
+                      {isTranslating ? 'Translating' : 'Translate'}
                     </button>
 
                     <button
                       onClick={pauseTranslation}
                       disabled={!isTranslating}
-                      className={`px-6 py-3 rounded-xl font-medium border-2 transition-all duration-200 ${
+                      className={`px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-3 rounded-xl text-sm sm:text-base font-medium border-2 transition-all duration-200 flex-1 max-w-[180px] ${
                         !isTranslating
                           ? 'border-gray-300 text-gray-400 cursor-not-allowed'
                           : 'border-blue-500 text-blue-500 hover:bg-blue-50'
@@ -917,7 +917,7 @@ export default function CameraInterface() {
                     <button
                       onClick={toggleFullscreen}
                       disabled={!cameraEnabled}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                      className={`px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-200 flex-1 max-w-[180px] ${
                         !cameraEnabled
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                           : 'bg-indigo-500 text-white hover:bg-indigo-600 shadow-lg hover:shadow-xl'
