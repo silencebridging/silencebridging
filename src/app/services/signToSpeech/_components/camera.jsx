@@ -397,6 +397,7 @@ export default function CameraInterface() {
               const devices = await navigator.mediaDevices.enumerateDevices();
               const videoDevices = devices.filter(device => device.kind === 'videoinput');
               
+
               if (videoDevices.length === 0) {
                 throw new Error('No video input devices found');
               }
@@ -406,6 +407,7 @@ export default function CameraInterface() {
                 ? videoDevices.length - 1  // Usually back camera
                 : 0;  // Usually front camera
               
+
               const deviceId = videoDevices[deviceIndex].deviceId;
               
               const deviceConstraints = {
@@ -416,6 +418,7 @@ export default function CameraInterface() {
               console.log('Trying with specific device ID:', deviceConstraints);
               const deviceStream = await navigator.mediaDevices.getUserMedia(deviceConstraints);
               
+
               setStream(deviceStream);
               setVideoSource(deviceStream);
             } catch (deviceErr) {
@@ -599,6 +602,14 @@ export default function CameraInterface() {
     };
   }, []);
 
+  // Add this with your other state variables
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Add this function with your other event handlers
+  const toggleFullscreen = () => {
+    setIsFullscreen(prev => !prev);
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen relative overflow-hidden">
       {/* Add the MediaPipeLoader component with the handleMediaPipeReady function */}
@@ -622,7 +633,12 @@ export default function CameraInterface() {
 
             {/* Video Container */}
             <div className="p-6">
-              <div className="relative bg-black rounded-2xl overflow-hidden" style={{ height: "360px" }}>
+              <div 
+                className={`relative bg-black rounded-2xl overflow-hidden ${
+                  isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''
+                }`} 
+                style={{ height: isFullscreen ? '100vh' : '360px' }}
+              >
                 {cameraEnabled ? (
                   <>
                     <video
@@ -636,7 +652,7 @@ export default function CameraInterface() {
                         backgroundColor: "black",
                         width: "100%",
                         height: "100%",
-                        objectFit: "contain",
+                        objectFit: isFullscreen ? "cover" : "contain",
                         transform: `scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
                       }}
                     />
@@ -648,13 +664,99 @@ export default function CameraInterface() {
                       }}
                     />
                     
-                    {/* Prediction Display - Show when translating */}
+                    {/* Add fullscreen toggle button */}
+                    <button
+                      onClick={toggleFullscreen}
+                      className="absolute top-4 left-4 bg-gray-800 bg-opacity-70 p-2 rounded-full text-white hover:bg-opacity-100 transition-all duration-200"
+                      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                    >
+                      {isFullscreen ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+                        </svg>
+                      )}
+                    </button>
+                    
+                    {/* Move camera switch and collection buttons */}
+                    <div className="absolute top-4 right-4 flex flex-col space-y-2">
+                      <button 
+                        onClick={switchCamera}
+                        className="bg-gray-800 bg-opacity-70 p-2 rounded-full text-white hover:bg-opacity-100 transition-all duration-200"
+                        aria-label="Switch camera"
+                      >
+                        <RefreshCw className="w-5 h-5" />
+                      </button>
+                      
+                      <button 
+                        onClick={toggleCollection}
+                        className={`${isCollecting ? 'bg-red-500' : 'bg-green-500'} bg-opacity-70 p-2 rounded-full text-white hover:bg-opacity-100 transition-all duration-200`}
+                        aria-label={isCollecting ? "Stop collecting" : "Start collecting"}
+                      >
+                        <Save className="w-5 h-5" />
+                      </button>
+                    </div>
+                    
+                    {/* Translation status overlay */}
+                    {isTranslating && (
+                      <div className={`absolute ${isFullscreen ? 'top-16' : 'top-4'} left-4`}>
+                        <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                          <span>{isPaused ? 'Paused' : 'Translating'}</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Collection status overlay */}
+                    {isCollecting && (
+                      <div className="absolute bottom-4 left-4">
+                        <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                          <span>Collecting: {landmarkCount} frames</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Bottom Translation Bar - Only show when translating */}
                     {isTranslating && !isPaused && (
-                      <div className="absolute bottom-4 right-4 bg-blue-600 text-white text-4xl font-bold w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
-                        {isPredicting ? (
-                          <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          predictedLetter || '?'
+                      <div className="absolute bottom-0 left-0 right-0 bg-gray-900 bg-opacity-80 text-white p-4 flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                            <span className="text-white text-2xl font-bold">
+                              {isPredicting ? (
+                                <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                predictedLetter || '?'
+                              )}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm">
+                              {isPredicting ? 'Analyzing...' : 
+                               predictedLetter ? `Detected: ${predictedLetter}` : 
+                               'Make a sign'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {isFullscreen && (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={pauseTranslation}
+                              className="px-3 py-1 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700"
+                            >
+                              {isPaused ? 'Resume' : 'Pause'}
+                            </button>
+                            <button
+                              onClick={toggleFullscreen}
+                              className="px-3 py-1 rounded-lg text-sm font-medium bg-gray-600 hover:bg-gray-700"
+                            >
+                              Exit
+                            </button>
+                          </div>
                         )}
                       </div>
                     )}
@@ -712,8 +814,8 @@ export default function CameraInterface() {
                 )}
               </div>
               
-              {/* Prediction Display - Larger display below video */}
-              {isTranslating && !isPaused && (
+              {/* Prediction Display - Only show when not in fullscreen mode */}
+              {isTranslating && !isPaused && !isFullscreen && (
                 <div className="mt-4 p-4 bg-gray-100 rounded-xl">
                   <h3 className="text-lg font-medium text-gray-700 mb-2">Predicted Sign</h3>
                   <div className="flex items-center">
@@ -740,75 +842,92 @@ export default function CameraInterface() {
                 </div>
               )}
 
-              {/* Zoom Controls */}
-              <div className="flex justify-center mt-6">
-                <div className="text-center">
-                  <p className="text-gray-600 font-medium mb-2">Zoom</p>
-                  <div className="bg-blue-100 rounded-full p-1 inline-flex space-x-1">
-                    {['0.5x', '1x', '2x'].map((zoomLevel) => (
-                      <button
-                        key={zoomLevel}
-                        onClick={() => handleZoomChange(zoomLevel)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                          zoom === zoomLevel
-                            ? 'bg-blue-500 text-white shadow-md'
-                            : 'text-blue-600 hover:bg-blue-200'
-                        }`}
-                      >
-                        {zoomLevel}
-                      </button>
-                    ))}
+              {/* Only show controls when not in fullscreen mode */}
+              {!isFullscreen && (
+                <>
+                  {/* Zoom Controls */}
+                  <div className="flex justify-center mt-6">
+                    <div className="text-center">
+                      <p className="text-gray-600 font-medium mb-2">Zoom</p>
+                      <div className="bg-blue-100 rounded-full p-1 inline-flex space-x-1">
+                        {['0.5x', '1x', '2x'].map((zoomLevel) => (
+                          <button
+                            key={zoomLevel}
+                            onClick={() => handleZoomChange(zoomLevel)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                              zoom === zoomLevel
+                                ? 'bg-blue-500 text-white shadow-md'
+                                : 'text-blue-600 hover:bg-blue-200'
+                            }`}
+                          >
+                            {zoomLevel}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Current Camera Mode Indicator */}
-              <div className="text-center mt-2">
-                <p className="text-xs text-gray-500">
-                  Current: {facingMode === 'user' ? 'Front Camera' : 'Back Camera'}
-                </p>
-              </div>
+                  {/* Current Camera Mode Indicator */}
+                  <div className="text-center mt-2">
+                    <p className="text-xs text-gray-500">
+                      Current: {facingMode === 'user' ? 'Front Camera' : 'Back Camera'}
+                    </p>
+                  </div>
 
-              {/* Control Buttons */}
-              <div className="flex justify-center space-x-4 mt-8">
-                <button
-                  onClick={enableCamera}
-                  disabled={cameraEnabled}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                    cameraEnabled
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
-                  }`}
-                >
-                  {cameraEnabled ? 'Camera Enabled' : 'Allow Camera'}
-                </button>
+                  {/* Control Buttons */}
+                  <div className="flex justify-center space-x-4 mt-8">
+                    <button
+                      onClick={enableCamera}
+                      disabled={cameraEnabled}
+                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                        cameraEnabled
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
+                      }`}
+                    >
+                      {cameraEnabled ? 'Camera Enabled' : 'Allow Camera'}
+                    </button>
 
-                <button
-                  onClick={startTranslation}
-                  disabled={!cameraEnabled}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                    !cameraEnabled
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : isTranslating
-                      ? 'bg-green-500 text-white'
-                      : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
-                  }`}
-                >
-                  {isTranslating ? 'Translating...' : 'Start Translation'}
-                </button>
+                    <button
+                      onClick={startTranslation}
+                      disabled={!cameraEnabled}
+                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                        !cameraEnabled
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : isTranslating
+                          ? 'bg-green-500 text-white'
+                          : 'bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl'
+                      }`}
+                    >
+                      {isTranslating ? 'Translating...' : 'Start Translation'}
+                    </button>
 
-                <button
-                  onClick={pauseTranslation}
-                  disabled={!isTranslating}
-                  className={`px-6 py-3 rounded-xl font-medium border-2 transition-all duration-200 ${
-                    !isTranslating
-                      ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                      : 'border-blue-500 text-blue-500 hover:bg-blue-50'
-                  }`}
-                >
-                  {isPaused ? 'Resume' : 'Pause'}
-                </button>
-              </div>
+                    <button
+                      onClick={pauseTranslation}
+                      disabled={!isTranslating}
+                      className={`px-6 py-3 rounded-xl font-medium border-2 transition-all duration-200 ${
+                        !isTranslating
+                          ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                          : 'border-blue-500 text-blue-500 hover:bg-blue-50'
+                      }`}
+                    >
+                      {isPaused ? 'Resume' : 'Pause'}
+                    </button>
+
+                    <button
+                      onClick={toggleFullscreen}
+                      disabled={!cameraEnabled}
+                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                        !cameraEnabled
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-indigo-500 text-white hover:bg-indigo-600 shadow-lg hover:shadow-xl'
+                      }`}
+                    >
+                      Fullscreen
+                    </button>
+                  </div>
+                </>
+              )}
 
               {/* Error Message */}
               {error && (
