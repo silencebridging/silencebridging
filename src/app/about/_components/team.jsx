@@ -14,7 +14,7 @@ export default function TeamImpactSection() {
       role: "Manager"
     },
     {
-      name:"Pio Rwehumbiza"
+      name:"Pio Rwehumbiza",
       role:"IT analyst"
 
     },
