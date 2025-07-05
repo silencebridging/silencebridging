@@ -14,6 +14,11 @@ export default function TeamImpactSection() {
       role: "Manager"
     },
     {
+      name:"Pio Rwehumbiza"
+      role:"IT analyst"
+
+    },
+    {
       name: "Jocelyne Paul",
       role: "Community Liason"
     },
