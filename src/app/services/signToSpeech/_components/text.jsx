@@ -1,8 +1,7 @@
 import { MoreVertical, Copy, Download, Volume2 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function TranslationOutput() {
-  const [translatedText, setTranslatedText] = useState('');
+export default function TranslationOutput({ translatedText, setTranslatedText }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 

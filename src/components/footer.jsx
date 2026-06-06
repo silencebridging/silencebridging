@@ -135,9 +135,9 @@ const Footer = () => {
     { name: 'Home', href: '/', icon: Home, active: true },
     { name: 'About Us', href: '/about' },
     { name: 'Services', href: '/services' },
-    { name: "FAQ's", href: '#' },
-    { name: 'Blog', href: '#' },
-    { name: 'Contact Us', href: '#' },
+    { name: "FAQ's", href: '/faq' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Contact Us', href: '/contact' },
     { name: 'Admin', href: '/admin' }
   ];
 

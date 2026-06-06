@@ -98,17 +98,17 @@ const HeaderComponent = () => {
               Services
               <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/services' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
-            <a href="#faq" className="relative py-1 group hover:text-blue-100 transition-colors">
+            <a href="/faq" className="relative py-1 group hover:text-blue-100 transition-colors">
               FAQ's
-              <span className="absolute bottom-[-6px] left-0 w-full h-0.5 bg-white scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/faq' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
-            <a href="#blog" className="relative py-1 group hover:text-blue-100 transition-colors">
+            <a href="/blog" className="relative py-1 group hover:text-blue-100 transition-colors">
               Blog
-              <span className="absolute bottom-[-6px] left-0 w-full h-0.5 bg-white scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/blog' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
-            <a href="#contact" className="relative py-1 group hover:text-blue-100 transition-colors">
+            <a href="/contact" className="relative py-1 group hover:text-blue-100 transition-colors">
               Contact Us
-              <span className="absolute bottom-[-6px] left-0 w-full h-0.5 bg-white scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/contact' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
             <a href="/admin" className="relative py-1 group hover:text-blue-100 transition-colors">
               Admin
@@ -149,13 +149,13 @@ const HeaderComponent = () => {
               <a href="/services" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
                 Services
               </a>
-              <a href="#faq" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
+              <a href="/faq" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
                 FAQ's
               </a>
-              <a href="#blog" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
+              <a href="/blog" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
                 Blog
               </a>
-              <a href="#contact" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
+              <a href="/contact" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
                 Contact Us
               </a>
               <a href="/admin" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors text-amber-300">

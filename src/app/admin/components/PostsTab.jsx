@@ -1,14 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   FileText, 
   Plus, 
   X, 
   XCircle, 
   Check, 
-  Loader2 
+  Loader2,
+  Upload
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function PostsTab({
   posts = [],
@@ -27,6 +29,63 @@ export default function PostsTab({
   formSubmitting,
   userProfile
 }) {
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  const onImageFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingImage(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `article_images/${fileName}`;
+
+      // Upload image to the Supabase assets bucket
+      const { data, error } = await supabase.storage
+        .from('assets')
+        .upload(filePath, file);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Retrieve public URL of the uploaded image
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(filePath);
+
+      const textarea = textareaRef.current;
+      const markdownSnippet = `\n![Image Description](${publicUrl})\n`;
+
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const currentText = articleBody;
+        const newText = currentText.substring(0, start) + markdownSnippet + currentText.substring(end);
+        
+        setArticleBody(newText);
+
+        // Reset cursor focus after inserting markdown image
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(start + markdownSnippet.length, start + markdownSnippet.length);
+        }, 100);
+      } else {
+        setArticleBody(prev => prev + markdownSnippet);
+      }
+    } catch (err) {
+      alert("Failed to upload image: " + err.message);
+    } finally {
+      setIsUploadingImage(false);
+      if (e.target) {
+        e.target.value = '';
+      }
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -161,11 +220,46 @@ export default function PostsTab({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Content Body (Markdown Supported)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Content Body (Markdown Supported)
+                  </label>
+                  
+                  {/* Upload Image Helper */}
+                  <div className="relative">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={onImageFileChange} 
+                      accept="image/*"
+                      className="hidden" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingImage || formSubmitting}
+                      className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-[#1b64da] rounded-lg text-[10px] font-extrabold transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      {isUploadingImage ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin text-[#1b64da]" />
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Insert Image</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
                 <textarea
+                  ref={textareaRef}
                   value={articleBody}
                   onChange={e => setArticleBody(e.target.value)}
-                  placeholder="Type your markdown content here..."
+                  placeholder="Type your markdown content here... Tip: Click 'Insert Image' to upload and place images inside the content."
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-900 outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 transition-all h-48 resize-none font-mono"
                   required
                   disabled={formSubmitting}

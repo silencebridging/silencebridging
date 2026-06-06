@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '@/components/navBar';
 import SponsorsSection from '@/components/sponsors';
@@ -10,20 +11,27 @@ import TranslationOutput from './_components/text';
 
 export default function SignToSpeechPage() {
   const router = useRouter();
+  const [translatedText, setTranslatedText] = useState('');
   
   return (
     <div className="min-h-screen flex flex-col w-full">
       <HeaderComponent />
       
       <main className="flex-grow w-full">
-        {/* Onboarding Intro (handles containers internally) */}
+        {/* Onboarding Intro */}
         <RealTimeTranslator />
         
-        {/* Camera stream tracking (handles containers internally) */}
-        <CameraInterface />
+        {/* Camera stream tracking with shared translation state */}
+        <CameraInterface 
+          translatedText={translatedText}
+          setTranslatedText={setTranslatedText}
+        />
         
-        {/* Speech output text (handles containers internally) */}
-        <TranslationOutput />
+        {/* Speech output text with shared translation state */}
+        <TranslationOutput 
+          translatedText={translatedText}
+          setTranslatedText={setTranslatedText}
+        />
         
         {/* Shared Sponsors Section */}
         <div className="w-full bg-white py-16 border-t border-gray-100">
