@@ -89,6 +89,7 @@ export default function AdminDashboard() {
   const [articleTitle, setArticleTitle] = useState('');
   const [articleBody, setArticleBody] = useState('');
   const [articleStatus, setArticleStatus] = useState('draft');
+  const [articleHeaderImage, setArticleHeaderImage] = useState('');
 
   const [updatingRoleUserId, setUpdatingRoleUserId] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -452,6 +453,12 @@ export default function AdminDashboard() {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
 
+      // Prepend header cover image markdown tag if provided
+      let finalBody = articleBody;
+      if (articleHeaderImage) {
+        finalBody = `![Header Image](${articleHeaderImage})\n\n${articleBody}`;
+      }
+
       // Insert record into content_posts table
       const { data: insertData, error: insertError } = await supabase
         .from('content_posts')
@@ -459,7 +466,7 @@ export default function AdminDashboard() {
           {
             title: articleTitle,
             slug,
-            content_body: articleBody,
+            content_body: finalBody,
             status: articleStatus,
             author_id: currentUser?.id,
             published_at: articleStatus === 'published' ? new Date().toISOString() : null
@@ -473,7 +480,7 @@ export default function AdminDashboard() {
         id: Math.random().toString(),
         title: articleTitle,
         slug,
-        content_body: articleBody,
+        content_body: finalBody,
         status: articleStatus,
         author: userProfile?.full_name || 'Admin',
         published_at: articleStatus === 'published' ? new Date().toISOString().split('T')[0] : null
@@ -485,6 +492,7 @@ export default function AdminDashboard() {
       // Reset Fields
       setArticleTitle('');
       setArticleBody('');
+      setArticleHeaderImage('');
       setArticleStatus('draft');
       setTimeout(() => {
         setIsArticleModalOpen(false);
@@ -832,10 +840,14 @@ export default function AdminDashboard() {
               setArticleBody={setArticleBody}
               articleStatus={articleStatus}
               setArticleStatus={setArticleStatus}
+              articleHeaderImage={articleHeaderImage}
+              setArticleHeaderImage={setArticleHeaderImage}
               handleAddArticleSubmit={handleAddArticleSubmit}
               handleUpdatePostStatus={handleUpdatePostStatus}
               formError={formError}
+              setFormError={setFormError}
               formSuccess={formSuccess}
+              setFormSuccess={setFormSuccess}
               formSubmitting={formSubmitting}
               userProfile={userProfile}
             />

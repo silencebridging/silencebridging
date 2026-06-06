@@ -22,16 +22,23 @@ export default function PostsTab({
   setArticleBody,
   articleStatus,
   setArticleStatus,
+  articleHeaderImage,
+  setArticleHeaderImage,
   handleAddArticleSubmit,
   handleUpdatePostStatus,
   formError,
+  setFormError,
   formSuccess,
+  setFormSuccess,
   formSubmitting,
   userProfile
 }) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingHeader, setIsUploadingHeader] = useState(false);
+  
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+  const headerInputRef = useRef(null);
 
   const onImageFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -80,6 +87,41 @@ export default function PostsTab({
       alert("Failed to upload image: " + err.message);
     } finally {
       setIsUploadingImage(false);
+      if (e.target) {
+        e.target.value = '';
+      }
+    }
+  };
+
+  const onHeaderImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingHeader(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `header_${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `article_headers/${fileName}`;
+
+      // Upload header cover image to the Supabase assets bucket
+      const { data, error } = await supabase.storage
+        .from('assets')
+        .upload(filePath, file);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Retrieve public URL of the uploaded image
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(filePath);
+
+      setArticleHeaderImage(publicUrl);
+    } catch (err) {
+      alert("Failed to upload cover photo: " + err.message);
+    } finally {
+      setIsUploadingHeader(false);
       if (e.target) {
         e.target.value = '';
       }
@@ -135,7 +177,7 @@ export default function PostsTab({
                 ) : (
                   <button
                     onClick={() => handleUpdatePostStatus(post.id, 'draft')}
-                    className="text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all"
+                    className="text-gray-650 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all"
                   >
                     Keep Draft
                   </button>
@@ -168,7 +210,7 @@ export default function PostsTab({
               </button>
             </div>
 
-            <form onSubmit={handleAddArticleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleAddArticleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               {formError && (
                 <div className="p-3 text-xs bg-red-50 border border-red-200 text-red-800 rounded-xl font-medium flex items-center gap-2">
                   <XCircle className="w-4 h-4 shrink-0 text-red-600" />
@@ -193,6 +235,59 @@ export default function PostsTab({
                   required
                   disabled={formSubmitting}
                 />
+              </div>
+
+              {/* HEADER COVER IMAGE COVER SELECTOR */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Header Cover Image</label>
+                <input 
+                  type="file" 
+                  ref={headerInputRef}
+                  onChange={onHeaderImageChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                
+                {articleHeaderImage ? (
+                  <div className="relative border border-gray-250 rounded-xl overflow-hidden bg-gray-50 flex items-center p-3 gap-3">
+                    <img 
+                      src={articleHeaderImage} 
+                      alt="Header Preview" 
+                      className="w-16 h-12 object-cover rounded-lg border border-gray-200"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-800 truncate">Upload Complete</p>
+                      <span className="text-[10px] text-gray-400 font-semibold truncate block">{articleHeaderImage}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setArticleHeaderImage('')}
+                      className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all cursor-pointer"
+                      title="Remove cover photo"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => headerInputRef.current?.click()}
+                    disabled={isUploadingHeader || formSubmitting}
+                    className="w-full border border-dashed border-gray-300 hover:border-blue-550 rounded-xl py-4 flex flex-col items-center justify-center gap-1.5 transition-all text-gray-500 hover:text-blue-600 bg-gray-50/50 cursor-pointer disabled:opacity-50"
+                  >
+                    {isUploadingHeader ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                        <span className="text-xs font-bold">Uploading Cover Photo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 text-gray-400" />
+                        <span className="text-xs font-bold">Choose cover photo</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -271,14 +366,14 @@ export default function PostsTab({
                   type="button"
                   onClick={() => setIsArticleModalOpen(false)}
                   disabled={formSubmitting}
-                  className="px-4 py-2 border border-gray-200 text-gray-600 hover:text-gray-900 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-200 text-gray-600 hover:text-gray-900 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/10 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/10 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {formSubmitting ? (
                     <>
