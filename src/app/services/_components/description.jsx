@@ -1,90 +1,114 @@
+'use client';
+
+import React from 'react';
 import { Mic, MessageSquare, Volume2, Hand } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Add this import
+import { useRouter } from 'next/navigation';
 
 export default function BridgingSilenceHero() {
-  const router = useRouter(); // Add this line
+  const router = useRouter();
 
   const navigateToSignToSpeech = () => {
-    console.log('Navigating to Sign-to-Sauti page');
     router.push('/services/signToSpeech');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute top-16 right-0 w-80 h-80 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full opacity-20 blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500 to-purple-600 rounded-full opacity-20 blur-3xl"></div>
+    <div className="w-full min-h-screen bg-white relative overflow-hidden py-16 flex items-center">
       
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left side - Main content */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-                Breaking <span className="text-blue-500">Barriers</span>, Building{' '}
-                <span className="text-blue-500">Connections</span>.
+      {/* Background cylinders behind the cards (slanted capsule shapes) */}
+      <div className="absolute top-[18%] left-[45%] z-0 hidden xl:flex space-x-6 transform -rotate-[35deg] pointer-events-none">
+        <div className="w-12 h-80 bg-sky-400 rounded-full opacity-[0.85] shadow-sm"></div>
+        <div className="w-12 h-80 bg-[#8b5cf6] rounded-full opacity-[0.85] shadow-sm -translate-y-8"></div>
+      </div>
+
+      {/* Bottom right corner slanted bands */}
+      <div className="absolute bottom-[-150px] right-[-150px] pointer-events-none z-0 hidden lg:block">
+        <div className="relative w-96 h-96">
+          <div className="absolute bottom-0 right-0 w-16 h-[600px] bg-sky-400 rounded-full transform -rotate-[45deg] origin-bottom-right opacity-[0.85]"></div>
+          <div className="absolute bottom-0 right-0 w-16 h-[600px] bg-[#8b5cf6] rounded-full transform -rotate-[45deg] origin-bottom-right translate-x-12 opacity-[0.85]"></div>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          
+          {/* Left side - Main Card */}
+          <div className="lg:col-span-6 xl:col-span-7">
+            <div className="bg-white rounded-[3rem] p-8 sm:p-12 md:p-16 shadow-[0_15px_50px_rgba(0,0,0,0.05)] border border-gray-100/60 max-w-2xl">
+              <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-8 leading-tight tracking-tight">
+                Breaking <span className="text-[#1b64da]">Barriers,</span> Building{' '}
+                <span className="text-[#1b64da]">Connections.</span>
               </h1>
-            </div>
-            
-            <div className="mb-6 sm:mb-8">
-              <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
+              
+              <p className="text-gray-600 text-[16px] sm:text-lg leading-relaxed mb-10 font-normal">
                 Bridging Silence transforms communication between Deaf and Hearing communities 
                 through real-time AI tools, workshops, and inclusive designs. Our technology ensures no 
                 one is left out of the conversation. Through our technology hand gestures are captured, 
                 interpreted and instantly displays the meaning as text on screen and audible 
                 speech through a speaker.
               </p>
+              
+              <button className="bg-white border border-[#1b64da] text-[#1b64da] px-8 py-3.5 rounded-2xl font-bold text-sm hover:bg-[#1b64da]/5 transition-all duration-300 transform active:scale-95 cursor-pointer">
+                Translate to Swahili
+              </button>
             </div>
-            
-            <button className="bg-white border-2 border-blue-500 text-blue-500 px-6 sm:px-8 py-2 sm:py-3 rounded-full font-medium hover:bg-blue-50 transition-colors duration-200">
-              Translate to Swahili
-            </button>
           </div>
           
-          {/* Right side - Feature cards */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-            {/* Sign Language Card */}
-            <Link href="#" className="block">
-              <div className="bg-white rounded-2xl shadow-lg aspect-square transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:rotate-1 cursor-pointer flex flex-col justify-center items-center p-4 sm:p-6">
-                <div className="bg-purple-100 p-3 rounded-xl mb-3 sm:mb-4">
-                  <Hand className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+          {/* Right side - Staggered feature cards (Column 1 is shifted down) */}
+          <div className="lg:col-span-6 xl:col-span-5 flex justify-center pt-8 lg:pt-0">
+            <div className="flex gap-6 md:gap-8 justify-center items-start">
+              
+              {/* Left Column (Shifted Downwards for stagger) */}
+              <div className="flex flex-col gap-6 md:gap-8 transform md:translate-y-20">
+                {/* Sign Language Card */}
+                <div className="bg-white rounded-[2rem] shadow-[0_10px_35px_rgba(0,0,0,0.04)] border border-gray-100 w-40 sm:w-44 h-56 sm:h-64 flex flex-col justify-between items-center p-6 hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer">
+                  <div className="flex-grow flex items-center justify-center">
+                    <Hand className="w-10 h-10 text-[#8b5cf6]" />
+                  </div>
+                  <h3 className="font-semibold text-[#1b64da] text-[15px] sm:text-[17px] text-center italic">
+                    Sign Language
+                  </h3>
                 </div>
-                <h3 className="font-medium text-blue-500 text-center">Sign Language</h3>
+                
+                {/* Sign-to-Sauti Card (Navigates to /services/signToSpeech) */}
+                <div 
+                  onClick={navigateToSignToSpeech}
+                  className="bg-white rounded-[2rem] shadow-[0_10px_35px_rgba(0,0,0,0.04)] border border-gray-100 w-40 sm:w-44 h-56 sm:h-64 flex flex-col justify-between items-center p-6 hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer"
+                >
+                  <div className="flex-grow flex items-center justify-center">
+                    <Volume2 className="w-10 h-10 text-[#8b5cf6]" />
+                  </div>
+                  <h3 className="font-semibold text-[#1b64da] text-[15px] sm:text-[17px] text-center italic">
+                    Sign-to-Sauti
+                  </h3>
+                </div>
               </div>
-            </Link>
-            
-            {/* Sign-to-Sauti Card - Modified with direct navigation */}
-            <div 
-              onClick={navigateToSignToSpeech}
-              className="bg-white rounded-2xl shadow-lg aspect-square transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:rotate-1 cursor-pointer flex flex-col justify-center items-center p-4 sm:p-6"
-            >
-              <div className="bg-purple-100 p-3 rounded-xl mb-3 sm:mb-4">
-                <Volume2 className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+              
+              {/* Right Column (Starts at standard top level) */}
+              <div className="flex flex-col gap-6 md:gap-8">
+                {/* Sauti-to-Sign Card */}
+                <div className="bg-white rounded-[2rem] shadow-[0_10px_35px_rgba(0,0,0,0.04)] border border-gray-100 w-40 sm:w-44 h-56 sm:h-64 flex flex-col justify-between items-center p-6 hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer">
+                  <div className="flex-grow flex items-center justify-center">
+                    <Mic className="w-10 h-10 text-[#8b5cf6]" />
+                  </div>
+                  <h3 className="font-semibold text-[#1b64da] text-[15px] sm:text-[17px] text-center italic">
+                    Sauti-to-Sign
+                  </h3>
+                </div>
+                
+                {/* Sign-to-Text Card */}
+                <div className="bg-white rounded-[2rem] shadow-[0_10px_35px_rgba(0,0,0,0.04)] border border-gray-100 w-40 sm:w-44 h-56 sm:h-64 flex flex-col justify-between items-center p-6 hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer">
+                  <div className="flex-grow flex items-center justify-center">
+                    <MessageSquare className="w-10 h-10 text-[#8b5cf6]" />
+                  </div>
+                  <h3 className="font-semibold text-[#1b64da] text-[15px] sm:text-[17px] text-center italic">
+                    Sign-to-Text
+                  </h3>
+                </div>
               </div>
-              <h3 className="font-medium text-blue-500 text-center">Sign-to-Sauti</h3>
+
             </div>
-            
-            {/* Sauti-to-Sign Card */}
-            <Link href="#" className="block">
-              <div className="bg-white rounded-2xl shadow-lg aspect-square transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:rotate-1 cursor-pointer flex flex-col justify-center items-center p-4 sm:p-6">
-                <div className="bg-purple-100 p-3 rounded-xl mb-3 sm:mb-4">
-                  <Mic className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-                </div>
-                <h3 className="font-medium text-blue-500 text-center">Sauti-to-Sign</h3>
-              </div>
-            </Link>
-            
-            {/* Sign-to-Text Card */}
-            <Link href="#" className="block">
-              <div className="bg-white rounded-2xl shadow-lg aspect-square transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:rotate-1 cursor-pointer flex flex-col justify-center items-center p-4 sm:p-6">
-                <div className="bg-purple-100 p-3 rounded-xl mb-3 sm:mb-4">
-                  <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-                </div>
-                <h3 className="font-medium text-blue-500 text-center">Sign-to-Text</h3>
-              </div>
-            </Link>
           </div>
+          
         </div>
       </div>
     </div>

@@ -1,16 +1,9 @@
+'use client';
+
+import React from 'react';
 import { Check } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 export default function WhyChooseUsAnimated() {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
-
   const features = [
     {
       title: "TSL translation",
@@ -20,7 +13,7 @@ export default function WhyChooseUsAnimated() {
         "Accurate recognition",
         "100+ TSL sign languages",
         "Supports slang variations",
-        "Learns and improves"
+        "Learns and Improves"
       ]
     },
     {
@@ -70,77 +63,55 @@ export default function WhyChooseUsAnimated() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 relative overflow-hidden py-16">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full opacity-20 blur-3xl"></div>
+    <div className="w-full bg-white relative overflow-hidden py-20">
       
-      <div className="container mx-auto px-6">
-        {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            Why Choose <span className="text-blue-500">Us</span>?
+      {/* Background cylinders clipping the top-right corner */}
+      <div className="absolute top-0 right-[-30px] pointer-events-none z-0 hidden sm:block">
+        <div className="relative w-48 h-36">
+          <div className="absolute top-[-10px] right-[40px] w-10 h-36 bg-sky-400 rounded-full transform -rotate-[45deg] opacity-[0.85] shadow-sm"></div>
+          <div className="absolute top-[-10px] right-0 w-10 h-36 bg-[#8b5cf6] rounded-full transform -rotate-[45deg] opacity-[0.85] shadow-sm"></div>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-6 relative z-10">
+        
+        {/* Header - Styled like screenshot with italic "Why Choose" and bold blue "Us?" */}
+        <div className="text-center mb-20">
+          <h2 className="text-4xl sm:text-5xl font-light text-gray-900">
+            <span className="italic font-normal">Why Choose</span>{' '}
+            <span className="text-[#1b64da] font-black">Us?</span>
           </h2>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        {/* Features Column Layout - floating cardless design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16 max-w-6xl mx-auto">
           {features.map((feature, index) => (
-            <div
-              key={index}
-              className={`transform transition-all duration-700 ${
-                isVisible 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-10'
-              }`}
-              style={{ transitionDelay: `${index * 200}ms` }}
-            >
-              <FeatureCard feature={feature} />
+            <div key={index} className="flex flex-col justify-start items-start">
+              {/* Feature Title (Purple) */}
+              <h3 className="text-3xl font-medium text-[#8b5cf6] mb-2 tracking-tight">
+                {feature.title}
+              </h3>
+              
+              {/* Feature Subtitle (Blue) */}
+              <p className="text-[#1b64da] font-bold text-sm tracking-wide mb-6 uppercase">
+                {feature.subtitle}
+              </p>
+
+              {/* Items checklist (Purple checkboxes and text) */}
+              <div className="space-y-4 w-full">
+                {feature.items.map((item, itemIndex) => (
+                  <div key={itemIndex} className="flex items-start space-x-3 text-left">
+                    <Check className="w-5 h-5 text-[#8b5cf6] flex-shrink-0 mt-0.5" />
+                    <span className="text-[#8b5cf6]/90 text-sm font-semibold leading-relaxed">
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
 
-function FeatureCard({ feature }) {
-  const [hoveredItem, setHoveredItem] = useState(null);
-
-  return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full">
-      {/* Header */}
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold text-purple-600 mb-2">
-          {feature.title}
-        </h3>
-        <p className="text-blue-500 font-medium text-sm">
-          {feature.subtitle}
-        </p>
-      </div>
-
-      {/* Feature Items */}
-      <div className="space-y-3">
-        {feature.items.map((item, itemIndex) => (
-          <div
-            key={itemIndex}
-            className={`flex items-start space-x-3 p-2 rounded-lg transition-all duration-300 cursor-pointer ${
-              hoveredItem === itemIndex ? 'bg-purple-50 scale-105' : 'hover:bg-gray-50'
-            }`}
-            onMouseEnter={() => setHoveredItem(itemIndex)}
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <div className={`mt-0.5 transition-all duration-300 ${
-              hoveredItem === itemIndex ? 'scale-110' : ''
-            }`}>
-              <Check className="w-4 h-4 text-purple-600" />
-            </div>
-            <span className={`text-gray-700 text-sm leading-relaxed transition-all duration-300 ${
-              hoveredItem === itemIndex ? 'text-purple-700 font-medium' : ''
-            }`}>
-              {item}
-            </span>
-          </div>
-        ))}
       </div>
     </div>
   );
