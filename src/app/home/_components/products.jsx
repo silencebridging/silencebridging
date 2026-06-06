@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import { Check, Download, Eye } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const ProductsShowcase = () => {
   const [activeTab, setActiveTab] = useState('Get');
@@ -14,10 +14,10 @@ const ProductsShowcase = () => {
         '5" touchscreen& HD camera',
         '100+ TSL',
         'Offline functionality',
-        '8-hours battery life'
+        '6-hours battery life'
       ],
       buttonText: 'Order Now',
-      buttonStyle: 'border-blue-500 text-blue-500 hover:bg-blue-50'
+      buttonStyle: 'border-blue-600 text-blue-600 hover:bg-blue-50'
     },
     {
       name: 'BridgingApp',
@@ -30,7 +30,7 @@ const ProductsShowcase = () => {
         'Free and Premium access'
       ],
       buttonText: 'Download Now',
-      buttonStyle: 'border-blue-500 text-blue-500 hover:bg-blue-50',
+      buttonStyle: 'border-blue-600 text-blue-600 hover:bg-blue-50',
       isCenter: true
     },
     {
@@ -40,97 +40,98 @@ const ProductsShowcase = () => {
         'Organization-wide accessibility suite',
         'Admin dashboard for teams',
         'SCORM-compliant training module',
-        'Analytics&reporting',
+        'Analytical&reporting',
         'Custom API integration'
       ],
       buttonText: 'Request Demo',
-      buttonStyle: 'border-blue-500 text-blue-500 hover:bg-blue-50'
+      buttonStyle: 'border-blue-600 text-blue-600 hover:bg-blue-50'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header with animated line */}
-        <div className="text-center mb-12">
-          <div className="relative mb-8">
-            <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto w-full max-w-4xl rounded-full"></div>
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-6 h-6 bg-cyan-400 transform rotate-45 rounded-sm"></div>
-            </div>
+    <div className="bg-white py-16 px-4">
+      {/* Outer section wrapper card matching screenshot */}
+      <div className="bg-[#f4f5f6] rounded-[2.5rem] p-8 md:p-12 lg:p-16 shadow-[0_12px_40px_rgba(0,0,0,0.03)] border border-gray-100 relative max-w-6xl mx-auto overflow-hidden">
+        
+        {/* Blue top border */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#1b64da]"></div>
+        
+        {/* Chevron dip pointing down */}
+        <div className="absolute top-1.5 left-1/2 transform -translate-x-1/2 -translate-y-[1px] z-20">
+          <div className="w-12 h-6 bg-[#1b64da] rounded-b-2xl flex items-center justify-center shadow-md">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-          
-          <h1 className="text-4xl font-bold text-blue-600 mb-8 animate-fade-in">
+        </div>
+
+        {/* Heading */}
+        <div className="text-center mt-6 mb-8">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[#1b64da] tracking-wide">
             Products
-          </h1>
-          
-          {/* Tab Navigation */}
-          <div className="flex justify-center mb-12">
-            <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-1 rounded-full shadow-lg">
-              <div className="bg-white rounded-full flex">
-                {['Get', 'View'].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-8 py-3 rounded-full font-medium transition-all duration-300 ${
-                      activeTab === tab
-                        ? 'bg-white text-blue-600 shadow-md'
-                        : 'text-gray-500 hover:text-blue-600'
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
+          </h2>
+        </div>
+
+        {/* Tab Switcher - Styled like screenshot with purple outline and blue gradient background */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-[#1b64da]/10 border border-[#8b5cf6]/40 p-1.5 rounded-full shadow-inner flex items-center">
+            <div className="bg-gradient-to-r from-[#8b5cf6] to-[#1b64da] p-0.5 rounded-full flex">
+              {['Get', 'View'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-8 py-2 rounded-full font-bold text-sm transition-all duration-300 cursor-pointer ${
+                    activeTab === tab
+                      ? 'bg-white text-[#1b64da] shadow-md'
+                      : 'text-white hover:text-white/80'
+                  }`}
+                >
+                  {tab}
+                </button>
+               ))}
             </div>
           </div>
         </div>
 
-        {/* Products Grid - Floating Layout */}
-        <div className="flex flex-col md:flex-row justify-center items-start gap-8 max-w-6xl mx-auto">
+        {/* Products Grid - Floating Layout with violet content and blue CTA buttons */}
+        <div className="flex flex-col md:flex-row justify-center items-stretch gap-6 md:gap-8 max-w-5xl mx-auto py-4">
           {products.map((product, index) => (
             <div
               key={product.name}
-              className={`bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 animate-slide-up ${
-                index === 0 ? 'md:mt-16' : index === 1 ? 'md:-mt-8' : 'md:mt-12'
-              } ${product.isCenter ? 'md:scale-105 border-2 border-blue-200' : ''} w-full md:w-80`}
-              style={{
-                animationDelay: `${index * 200}ms`
-              }}
+              className={`bg-white rounded-[2rem] p-8 shadow-md hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 flex flex-col justify-between ${
+                index === 0 ? 'md:mt-12' : index === 1 ? 'md:-mt-4' : 'md:mt-8'
+              } ${product.isCenter ? 'md:scale-105 border border-blue-100 shadow-lg' : ''} w-full md:w-80`}
             >
               {/* Product Header */}
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-blue-600 mb-2">
+                <h3 className="text-3xl font-bold text-[#8b5cf6] mb-1">
                   {product.name}
                 </h3>
-                <p className="text-blue-500 font-medium">
+                <p className="text-[#1b64da] text-sm font-bold tracking-wide">
                   {product.subtitle}
                 </p>
               </div>
 
-              {/* Features List */}
-              <div className="space-y-4 mb-8">
+              {/* Features List - Violet color matching screenshot */}
+              <div className="space-y-4 mb-8 flex-grow">
                 {product.features.map((feature, featureIndex) => (
                   <div
                     key={featureIndex}
-                    className="flex items-start space-x-3 animate-fade-in"
-                    style={{
-                      animationDelay: `${(index * 200) + (featureIndex * 100)}ms`
-                    }}
+                    className="flex items-start space-x-3 text-left"
                   >
                     <div className="flex-shrink-0 mt-0.5">
-                      <Check className="w-5 h-5 text-blue-500" />
+                      <Check className="w-5 h-5 text-[#8b5cf6]" />
                     </div>
-                    <p className="text-gray-600 text-sm leading-relaxed">
+                    <p className="text-[#8b5cf6]/90 text-sm font-medium leading-relaxed">
                       {feature}
                     </p>
                   </div>
                 ))}
               </div>
 
-              {/* Action Button */}
-              <div className="text-center">
-                <button className={`px-8 py-3 border-2 rounded-full font-medium transition-all duration-300 hover:scale-105 active:scale-95 ${product.buttonStyle}`}>
+              {/* Action Button - outlined blue styling */}
+              <div className="text-center mt-auto">
+                <button className={`w-full max-w-[200px] px-6 py-2.5 border rounded-full font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${product.buttonStyle}`}>
                   {product.buttonText}
                 </button>
               </div>
@@ -138,39 +139,6 @@ const ProductsShowcase = () => {
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(40px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out forwards;
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.8s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
     </div>
   );
 };

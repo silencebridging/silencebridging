@@ -1,5 +1,6 @@
 'use client'
 import React from 'react';
+import Image from 'next/image';
 import { Play } from 'lucide-react';
 
 const ProblemSolutionComponent = () => {
@@ -28,50 +29,30 @@ const ProblemSolutionComponent = () => {
               between the Deaf and hearing worlds.
             </p>
             
-            <button className="flex items-center space-x-3 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 hover:scale-105 group">
-              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center group-hover:bg-opacity-30 transition-all duration-300">
-                <Play className="w-4 h-4 text-white ml-0.5" />
+            <button className="flex items-center space-x-4 bg-transparent border-0 p-0 cursor-pointer group">
+              <div className="relative w-12 h-12 rounded-full bg-[#aec9f9] flex items-center justify-center shadow-[0_4px_14px_rgba(27,100,218,0.25)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(27,100,218,0.35)]">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-[#1b64da] flex items-center justify-center">
+                    <Play className="w-3.5 h-3.5 text-white fill-white ml-0.5" />
+                  </div>
+                </div>
               </div>
-              <span className="font-medium">Watch Video</span>
+              <span className="font-semibold text-[#1b64da] text-base group-hover:text-[#1552b9] transition-colors duration-300">
+                Watch Video
+              </span>
             </button>
           </div>
           
           {/* Right Illustration */}
           <div className="flex justify-center animate-fade-in delay-300">
-            <div className="relative">
-              <div className="w-80 h-64 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-8 shadow-lg">
-                {/* Illustration placeholder - two people with communication symbols */}
-                <div className="flex items-center justify-center h-full space-x-8">
-                  {/* Person 1 */}
-                  <div className="flex flex-col items-center space-y-2">
-                    <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-red-500 rounded-full flex items-center justify-center">
-                      <div className="w-12 h-12 bg-red-300 rounded-full"></div>
-                    </div>
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce delay-100"></div>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce delay-200"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Person 2 */}
-                  <div className="flex flex-col items-center space-y-2">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
-                      <div className="w-12 h-12 bg-blue-300 rounded-full"></div>
-                    </div>
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Decorative leaves */}
-                <div className="absolute -top-4 -left-4 w-8 h-8 bg-green-400 rounded-full opacity-70 transform rotate-45"></div>
-                <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-green-500 rounded-full opacity-70 transform rotate-12"></div>
-                <div className="absolute top-8 -right-2 w-4 h-4 bg-green-400 rounded-full opacity-60"></div>
-              </div>
+            <div className="relative w-80 h-64 flex items-center justify-center">
+              <Image 
+                src="/doodles/undraw_friendly-guy-avatar_dqp5.svg" 
+                alt="Friendly Guy Avatar Illustration" 
+                width={320} 
+                height={256}
+                className="object-contain"
+              />
             </div>
           </div>
         </div>
@@ -80,23 +61,14 @@ const ProblemSolutionComponent = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Image */}
           <div className="flex justify-center animate-fade-in delay-200">
-            <div className="relative">
-              <div className="w-80 h-64 bg-gray-200 rounded-2xl overflow-hidden shadow-lg">
-                {/* Placeholder for crowd/community image */}
-                <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                  <div className="grid grid-cols-4 gap-2 p-8">
-                    {Array.from({length: 16}).map((_, i) => (
-                      <div 
-                        key={i} 
-                        className={`w-8 h-8 rounded-full ${
-                          i % 3 === 0 ? 'bg-blue-400' : 
-                          i % 3 === 1 ? 'bg-orange-400' : 'bg-green-400'
-                        } opacity-80`}
-                      ></div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            <div className="relative w-80 h-64 flex items-center justify-center">
+              <Image 
+                src="/doodles/undraw_messages_okui.svg" 
+                alt="Messages Illustration" 
+                width={320} 
+                height={256}
+                className="object-contain"
+              />
             </div>
           </div>
           
@@ -121,12 +93,18 @@ const ProblemSolutionComponent = () => {
               can connect without limits.
             </p>
             
-            <button className="flex items-center space-x-3 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-all duration-300 hover:scale-105 group">
-              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center group-hover:bg-opacity-30 transition-all duration-300">
-                <Play className="w-4 h-4 text-white ml-0.5" />
+            <button className="flex items-center space-x-4 bg-transparent border-0 p-0 cursor-pointer group">
+              <div className="relative w-12 h-12 rounded-full bg-[#aec9f9] flex items-center justify-center shadow-[0_4px_14px_rgba(27,100,218,0.25)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(27,100,218,0.35)]">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-[#1b64da] flex items-center justify-center">
+                    <Play className="w-3.5 h-3.5 text-white fill-white ml-0.5" />
+                  </div>
+                </div>
               </div>
-              <span className="font-medium">Watch Demo</span>
-              <span className="text-xl">🎯</span>
+              <span className="font-semibold text-[#1b64da] text-base group-hover:text-[#1552b9] transition-colors duration-300 flex items-center space-x-1">
+                <span>Watch Demo</span>
+                <span className="text-xl">🎯</span>
+              </span>
             </button>
           </div>
         </div>

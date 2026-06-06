@@ -1,34 +1,70 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play } from 'lucide-react';
+import SponsorsSection from '@/components/sponsors';
 
 const SignMuseumComponent = () => {
-  const [activeVideo, setActiveVideo] = useState(1);
+  const [activeVideo, setActiveVideo] = useState(2);
   
   const videos = [
     {
       id: 0,
-      thumbnail: "bg-gradient-to-br from-pink-200 to-orange-200",
-      content: "Two women communicating"
+      src: "/videos/ambukiza.mp4",
+      title: "ambukiza"
     },
     {
       id: 1,
-      thumbnail: "bg-gradient-to-br from-blue-200 to-gray-300",
-      content: "Man in purple shirt signing"
+      src: "/videos/angalia.mp4",
+      title: "angalia"
     },
     {
       id: 2,
-      thumbnail: "bg-gradient-to-br from-gray-200 to-blue-200",
-      content: "Person in modern setting"
+      src: "/videos/angalifu.mp4",
+      title: "angalifu"
+    },
+    {
+      id: 3,
+      src: "/videos/kitengo.mp4",
+      title: "kitengo"
+    },
+    {
+      id: 4,
+      src: "/videos/tofali.mp4",
+      title: "tofali"
     }
   ];
 
+  // Automate the carousel progression and reset the timer on manual click
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveVideo((prev) => (prev + 1) % videos.length);
+    }, 4000); // Slide every 4 seconds
+    return () => clearInterval(interval);
+  }, [activeVideo, videos.length]);
+
+  const getVisibleVideos = () => {
+    const prevIndex = (activeVideo - 1 + videos.length) % videos.length;
+    const nextIndex = (activeVideo + 1) % videos.length;
+    return [
+      { ...videos[prevIndex], originalIndex: prevIndex },
+      { ...videos[activeVideo], originalIndex: activeVideo },
+      { ...videos[nextIndex], originalIndex: nextIndex }
+    ];
+  };
+
   return (
-    <div className="bg-gray-50 py-16 px-6 relative overflow-hidden">
-      {/* Background decorative gradient */}
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-blue-400 to-purple-600 opacity-20 rounded-tr-full -translate-x-1/2 translate-y-1/2"></div>
+    <div className="bg-gray-50 py-20 px-6 relative overflow-hidden z-10 border-t border-gray-200/40">
       
-      <div className="max-w-6xl mx-auto">
+      {/* Subtle top divider to clearly separate from previous component */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gray-200/50"></div>
+
+      {/* Bottom Left angled animated pills/capsules (cylinders) - matching the layout and opacity from the screenshot */}
+      <div className="absolute bottom-[-80px] left-[-20px] md:bottom-[-140px] md:left-[-30px] flex gap-4 rotate-[40deg] opacity-95 pointer-events-none z-0">
+        <div className="w-14 h-56 md:w-20 md:h-80 bg-[#00adef] rounded-full animate-float-slow" />
+        <div className="w-14 h-56 md:w-20 md:h-80 bg-[#7c3aed] rounded-full animate-float-fast" />
+      </div>
+      
+      <div className="max-w-6xl mx-auto relative z-10">
         
         {/* Sign Museum Videos Section */}
         <div className="text-center space-y-12 mb-20">
@@ -36,32 +72,58 @@ const SignMuseumComponent = () => {
             <span className="text-blue-600">Sign</span> Museum <span className="text-blue-600">Videos</span>
           </h2>
           
-          {/* Video Gallery */}
-          <div className="flex justify-center items-center space-x-8">
-            {videos.map((video, index) => (
-              <div 
-                key={video.id}
-                className={`relative cursor-pointer transition-all duration-500 ${
-                  index === 1 ? 'w-80 h-52 scale-110 z-10' : 'w-64 h-40 opacity-70 hover:opacity-90'
-                }`}
-                onClick={() => setActiveVideo(index)}
-              >
-                <div className={`w-full h-full ${video.thumbnail} rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center relative overflow-hidden`}>
-                  {/* Video thumbnail content placeholder */}
-                  <div className="absolute inset-0 bg-black bg-opacity-10 rounded-2xl"></div>
-                  
-                  {/* Play button */}
-                  <div className="w-16 h-16 bg-black bg-opacity-70 rounded-full flex items-center justify-center hover:bg-opacity-80 transition-all duration-300 group">
-                    <Play className="w-8 h-8 text-white ml-1 group-hover:scale-110 transition-transform duration-300" />
+          {/* Carousel container without Navigation Buttons */}
+          <div className="flex items-center justify-center max-w-5xl mx-auto py-4 overflow-visible">
+            {/* Video Gallery - shows exactly three videos on desktop, one on mobile */}
+            <div className="flex flex-1 justify-center items-center gap-4 md:gap-8 py-4 overflow-visible">
+              {getVisibleVideos().map((video, visibleIndex) => {
+                const isActive = video.originalIndex === activeVideo;
+                // Hide non-active videos on mobile (indices 0 and 2 in the 3-visible array)
+                const visibilityClass = isActive ? 'block' : 'hidden sm:block';
+                return (
+                  <div 
+                    key={video.id}
+                    className={`${visibilityClass} relative cursor-pointer transition-all duration-500 ease-in-out ${
+                      isActive 
+                        ? 'w-[280px] h-[180px] md:w-[320px] md:h-[200px] scale-105 md:scale-110 z-10' 
+                        : 'w-[160px] h-[100px] md:w-[220px] md:h-[140px] opacity-60 hover:opacity-90'
+                    }`}
+                    onClick={() => setActiveVideo(video.originalIndex)}
+                  >
+                    <div className="w-full h-full bg-black rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center relative overflow-hidden">
+                      <video
+                        key={`${video.id}-${isActive}`}
+                        src={video.src}
+                        className="w-full h-full object-cover rounded-2xl"
+                        autoPlay={isActive}
+                        loop
+                        muted
+                        playsInline
+                      />
+                      
+                      {/* Shadow overlay and play button for inactive video */}
+                      {!isActive && (
+                        <div className="absolute inset-0 bg-black/30 rounded-2xl flex items-center justify-center transition-opacity duration-300 hover:bg-black/20">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-black/60 rounded-full flex items-center justify-center shadow-md">
+                            <Play className="w-4 h-4 md:w-5 md:h-5 text-white ml-0.5" />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Active video border */}
+                      {isActive && (
+                        <div className="absolute inset-0 border-4 border-blue-500 rounded-2xl pointer-events-none animate-pulse"></div>
+                      )}
+                      
+                      {/* Video title overlay */}
+                      <div className="absolute bottom-2 left-3 bg-black/60 px-3 py-1 rounded-full text-white text-[10px] md:text-xs font-bold capitalize tracking-wide z-20">
+                        {video.title}
+                      </div>
+                    </div>
                   </div>
-                  
-                  {/* Video border for active video */}
-                  {index === 1 && (
-                    <div className="absolute inset-0 border-4 border-blue-500 rounded-2xl"></div>
-                  )}
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
           
           {/* Progress indicator */}
@@ -69,9 +131,10 @@ const SignMuseumComponent = () => {
             {videos.map((_, index) => (
               <div 
                 key={index}
-                className={`h-1 rounded-full transition-all duration-300 ${
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                   index === activeVideo ? 'w-8 bg-blue-600' : 'w-4 bg-gray-300'
                 }`}
+                onClick={() => setActiveVideo(index)}
               ></div>
             ))}
           </div>
@@ -88,74 +151,26 @@ const SignMuseumComponent = () => {
           </div>
         </div>
         
-        {/* Trusted By Section */}
-        <div className="text-center space-y-12 relative z-10">
-          <h2 className="text-4xl font-bold text-gray-900">
-            <span className="text-blue-600">Trusted</span> By The World's <span className="text-blue-600">Best</span>
-          </h2>
-          
-          {/* Company Logos */}
-          <div className="flex flex-wrap justify-center items-center gap-12 opacity-70">
-            {/* AT&T */}
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-white rounded-full"></div>
-              </div>
-              <span className="text-2xl font-bold text-gray-700">AT&T</span>
-            </div>
-            
-            {/* Microsoft */}
-            <div className="flex items-center space-x-2">
-              <div className="grid grid-cols-2 gap-0.5 w-6 h-6">
-                <div className="bg-red-500 w-full h-full"></div>
-                <div className="bg-green-500 w-full h-full"></div>
-                <div className="bg-blue-500 w-full h-full"></div>
-                <div className="bg-yellow-500 w-full h-full"></div>
-              </div>
-              <span className="text-xl font-semibold text-gray-700">Microsoft</span>
-            </div>
-            
-            {/* Google */}
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold">
-                <span className="text-blue-500">G</span>
-                <span className="text-red-500">o</span>
-                <span className="text-yellow-500">o</span>
-                <span className="text-blue-500">g</span>
-                <span className="text-green-500">l</span>
-                <span className="text-red-500">e</span>
-              </span>
-            </div>
-            
-            {/* Skoll Foundation */}
-            <div className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-red-600">skoll</span>
-              <div className="text-sm text-gray-600">
-                <div>FOUNDATION</div>
-              </div>
-            </div>
-            
-            {/* Verizon */}
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-red-600 rounded-sm flex items-center justify-center">
-                <div className="w-3 h-3 border-2 border-white rounded-full"></div>
-              </div>
-              <span className="text-xl font-bold text-gray-700">verizon</span>
-            </div>
-            
-            {/* World Health Organization */}
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <div className="text-white text-xs font-bold">WHO</div>
-              </div>
-              <div className="text-sm text-blue-600 font-semibold">
-                <div>World Health</div>
-                <div>Organization</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Trusted By Section (reused shared SponsorsSection component) */}
+        <SponsorsSection />
       </div>
+      
+      <style jsx>{`
+        @keyframes floatSlow {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-10px) scale(1.02); }
+        }
+        @keyframes floatFast {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-15px) scale(0.98); }
+        }
+        .animate-float-slow {
+          animation: floatSlow 8s ease-in-out infinite;
+        }
+        .animate-float-fast {
+          animation: floatFast 6s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };
