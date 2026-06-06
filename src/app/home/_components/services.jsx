@@ -1,126 +1,142 @@
-"use client"
+'use client';
+
 import React from 'react';
-import { Mic, MessageSquare, Volume2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Mic, MessageSquare, Volume2, Fingerprint } from 'lucide-react';
 
 const VoiceServicesComponent = () => {
+  const router = useRouter();
+
   return (
-    <div className="min-h-screen bg-gray-50 p-8 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full opacity-20 -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
+    <div className="min-h-[600px] md:min-h-[800px] bg-white p-6 md:p-12 lg:p-20 relative overflow-hidden flex items-center justify-center font-sans z-10">
       
-      <div className="max-w-6xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 items-center min-h-screen">
+      {/* Top Left angled animated pills/capsules */}
+      <div className="absolute top-[-80px] left-[-20px] md:top-[-140px] md:left-[-30px] flex gap-4 rotate-[40deg] opacity-95 pointer-events-none z-0">
+        <div className="w-14 h-56 md:w-20 md:h-80 bg-[#00adef] rounded-full animate-float-slow" />
+        <div className="w-14 h-56 md:w-20 md:h-80 bg-[#7c3aed] rounded-full animate-float-fast" />
+      </div>
+
+      <div className="max-w-6xl w-full mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           
-          {/* Left Side - Service Cards arranged exactly like image */}
-          <div className="relative">
-            <div className="grid grid-cols-2 gap-6">
+          {/* Left Side: Staggered Cards Layout */}
+          <div className="flex flex-col items-center">
+            <div className="grid grid-cols-2 gap-6 w-full max-w-lg">
               
-              {/* Top Left - Sign Language */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 group animate-fade-in">
-                <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
-                    <div className="text-white text-2xl">👋</div>
+              {/* Column 1: Left Column (Normal Alignment) */}
+              <div className="space-y-6 flex flex-col justify-center">
+                {/* 1. Sign Language Card */}
+                <div 
+                  onClick={() => router.push('/services')}
+                  className="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.12)] border border-gray-100/50 flex flex-col items-center justify-center text-center aspect-square transition-all duration-300 hover:-translate-y-2 group cursor-pointer"
+                >
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-violet-500 transition-transform duration-300 group-hover:scale-110">
+                    <Fingerprint className="w-10 h-10" />
                   </div>
-                  <h3 className="text-blue-600 font-medium text-base">Sign Language</h3>
+                  <h3 className="text-blue-600 font-extrabold text-[13px] md:text-sm italic tracking-wide mt-4">
+                    Sign Language
+                  </h3>
+                </div>
+
+                {/* 2. Sign-to-Sauti Card */}
+                <div 
+                  onClick={() => router.push('/services/signToSpeech')}
+                  className="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.12)] border border-gray-100/50 flex flex-col items-center justify-center text-center aspect-square transition-all duration-300 hover:-translate-y-2 group cursor-pointer"
+                >
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-violet-500 transition-transform duration-300 group-hover:scale-110">
+                    <Volume2 className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-blue-600 font-extrabold text-[13px] md:text-sm italic tracking-wide mt-4">
+                    Sign-to-Sauti
+                  </h3>
                 </div>
               </div>
-              
-              {/* Top Right - Sauli-to-Sign */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 group animate-fade-in delay-100">
-                <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
-                    <Mic className="w-8 h-8 text-white" />
+
+              {/* Column 2: Right Column (Shifted upwards / Offset) */}
+              <div className="space-y-6 flex flex-col justify-center lg:-mt-12">
+                {/* 3. Sauti-to-Sign Card */}
+                <div 
+                  onClick={() => router.push('/services/signToSpeech')}
+                  className="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.12)] border border-gray-100/50 flex flex-col items-center justify-center text-center aspect-square transition-all duration-300 hover:-translate-y-2 group cursor-pointer"
+                >
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-violet-500 transition-transform duration-300 group-hover:scale-110">
+                    <Mic className="w-10 h-10" />
                   </div>
-                  <h3 className="text-blue-600 font-medium text-base">Sauli-to-Sign</h3>
+                  <h3 className="text-blue-600 font-extrabold text-[13px] md:text-sm italic tracking-wide mt-4">
+                    Sauti-to-Sign
+                  </h3>
+                </div>
+
+                {/* 4. Sign-to-Text Card */}
+                <div 
+                  onClick={() => router.push('/services/signToSpeech')}
+                  className="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.12)] border border-gray-100/50 flex flex-col items-center justify-center text-center aspect-square transition-all duration-300 hover:-translate-y-2 group cursor-pointer"
+                >
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-violet-500 transition-transform duration-300 group-hover:scale-110">
+                    <MessageSquare className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-blue-600 font-extrabold text-[13px] md:text-sm italic tracking-wide mt-4">
+                    Sign-to-Text
+                  </h3>
                 </div>
               </div>
-              
-              {/* Bottom Left - Sign-to-Sauli */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 group animate-fade-in delay-200">
-                <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
-                    <Volume2 className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-blue-600 font-medium text-base">Sign-to-Sauli</h3>
-                </div>
-              </div>
-              
-              {/* Bottom Right - Sign-to-Text */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 group animate-fade-in delay-300">
-                <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
-                    <MessageSquare className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-blue-600 font-medium text-base">Sign-to-Text</h3>
-                </div>
-              </div>
+
             </div>
-            
-            {/* Bottom Buttons - exactly positioned like image */}
-            <div className="flex justify-center space-x-4 mt-12">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg text-sm">
+
+            {/* Outlined Action Buttons */}
+            <div className="flex justify-center gap-4 mt-12 w-full">
+              <button 
+                onClick={() => router.push('/services/signToSpeech')}
+                className="border border-blue-600 hover:bg-blue-600 hover:text-white text-blue-600 px-6 py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 shadow-sm hover:shadow-md"
+              >
                 Get Started
               </button>
-              <button className="border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-6 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105 text-sm">
+              <button 
+                onClick={() => router.push('/services/signToSpeech')}
+                className="border border-blue-600 hover:bg-blue-600 hover:text-white text-blue-600 px-6 py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 shadow-sm hover:shadow-md"
+              >
                 Join Live Conversation
               </button>
             </div>
           </div>
-          
-          {/* Right Side - Content exactly like image */}
-          <div className="space-y-8 animate-fade-in delay-500">
-            <div className="space-y-6">
-              <h1 className="text-5xl font-bold leading-tight text-gray-900">
-                Every{' '}
-                <span className="text-blue-600">Voice</span>{' '}
-                Deserve To Be{' '}
-                <span className="text-blue-600">Heard</span>
-              </h1>
-              
-              <p className="text-lg text-gray-700 leading-relaxed max-w-lg">
-                Bridging Silence creates seamless communication between spoken and signed languages through innovative technology.
-              </p>
-            </div>
+
+          {/* Right Side: Headline and copy */}
+          <div className="text-left space-y-6 lg:pl-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+              Every <span className="text-blue-600">Voice</span> Deserve To Be <span className="text-blue-600">Heard</span>
+            </h2>
             
-            <div>
-              <button className="border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed font-medium max-w-lg">
+              Bridging Silence creates seamless communication between spoken and signed languages through innovative technology.
+            </p>
+
+            <div className="pt-2">
+              <button 
+                onClick={() => router.push('/services')}
+                className="border border-blue-600 hover:bg-blue-600 hover:text-white text-blue-600 px-6 py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300"
+              >
                 How to start?
               </button>
             </div>
           </div>
+
         </div>
       </div>
-      
+
       <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        @keyframes floatSlow {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-10px) scale(1.02); }
         }
-        
-        .animate-fade-in {
-          animation: fade-in 0.8s ease-out forwards;
+        @keyframes floatFast {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-15px) scale(0.98); }
         }
-        
-        .delay-100 {
-          animation-delay: 0.1s;
+        .animate-float-slow {
+          animation: floatSlow 8s ease-in-out infinite;
         }
-        
-        .delay-200 {
-          animation-delay: 0.2s;
-        }
-        
-        .delay-300 {
-          animation-delay: 0.3s;
-        }
-        
-        .delay-500 {
-          animation-delay: 0.5s;
+        .animate-float-fast {
+          animation: floatFast 6s ease-in-out infinite;
         }
       `}</style>
     </div>

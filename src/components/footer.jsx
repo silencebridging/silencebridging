@@ -132,12 +132,13 @@ const ChatWidget = () => {
 
 const Footer = () => {
   const navigationLinks = [
-    { name: 'Home', href: '#', icon: Home, active: true },
-    { name: 'About Us', href: '#' },
-    { name: 'Services', href: '#' },
+    { name: 'Home', href: '/', icon: Home, active: true },
+    { name: 'About Us', href: '/about' },
+    { name: 'Services', href: '/services' },
     { name: "FAQ's", href: '#' },
     { name: 'Blog', href: '#' },
-    { name: 'Contact Us', href: '#' }
+    { name: 'Contact Us', href: '#' },
+    { name: 'Admin', href: '/admin' }
   ];
 
   const socialIcons = [
@@ -169,7 +170,7 @@ const Footer = () => {
 
   return (
     <>
-      <footer className="bg-gray-50 py-12 relative">
+      <footer className="bg-gray-50 pt-12 pb-0 relative">
         <div className="max-w-6xl mx-auto px-4">
           {/* Navigation Links */}
           <div className="flex flex-wrap justify-center items-center gap-8 mb-12">
@@ -209,13 +210,13 @@ const Footer = () => {
               </div>
             ))}
           </div>
+        </div>
 
-          {/* Copyright Section */}
-          <div className="bg-blue-600 text-white text-center py-4 rounded-t-lg -mx-4">
-            <p className="font-medium">
-              Copyright 2025- All Rights Reserved
-            </p>
-          </div>
+        {/* Copyright Section */}
+        <div className="bg-blue-600 text-white text-center py-5 w-full">
+          <p className="font-medium text-sm sm:text-base">
+            Copyright 2025- All Rights Reserved
+          </p>
         </div>
 
         {/* Scroll to Top Button */}
