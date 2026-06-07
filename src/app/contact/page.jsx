@@ -5,6 +5,7 @@ import HeaderComponent from '@/components/navBar';
 import SponsorsSection from '@/components/sponsors';
 import Footer from '@/components/footer';
 import { Mail, Phone, MapPin, Send, CheckCircle2, MessageSquare } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ export default function ContactPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
       setError('Please fill in all required fields.');
@@ -32,12 +33,35 @@ export default function ContactPage() {
     setError('');
     setIsSubmitting(true);
     
-    // Simulate API request submission
-    setTimeout(() => {
+    try {
+      // If subject is entered, prepend it to the message or store it cleanly.
+      const formattedMessage = formData.subject 
+        ? `[Subject: ${formData.subject}]\n\n${formData.message}`
+        : formData.message;
+
+      const { error: insertError } = await supabase
+        .from('support_tickets')
+        .insert([
+          {
+            submitter_name: formData.name,
+            submitter_email: formData.email,
+            message: formattedMessage,
+            status: 'open'
+          }
+        ]);
+
+      if (insertError) {
+        throw insertError;
+      }
+
       setIsSubmitting(false);
       setSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 1200);
+    } catch (err) {
+      console.error("Error submitting to Supabase:", err);
+      setError(err.message || 'Failed to send message. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   return (

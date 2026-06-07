@@ -36,7 +36,8 @@ import {
   Terminal,
   ClipboardList,
   Settings as SettingsIcon,
-  Shield
+  Shield,
+  HelpCircle
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -52,6 +53,7 @@ import TicketsTab from './components/TicketsTab';
 import PostsTab from './components/PostsTab';
 import ActivityTab from './components/ActivityTab';
 import SettingsTab from './components/SettingsTab';
+import ManualTab from './components/ManualTab';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -606,7 +608,8 @@ export default function AdminDashboard() {
             { id: 'tickets', label: 'Support Tickets', icon: LifeBuoy, count: tickets.filter(t => t.status === 'open').length },
             { id: 'posts', label: 'Content Management', icon: FileText },
             { id: 'activity', label: 'Team Activity', icon: ClipboardList },
-            { id: 'settings', label: 'Settings', icon: SettingsIcon }
+            { id: 'settings', label: 'Settings', icon: SettingsIcon },
+            { id: 'manual', label: 'User Manual', icon: HelpCircle }
           ].map(item => (
             <button
               key={item.id}
@@ -867,6 +870,10 @@ export default function AdminDashboard() {
             <SettingsTab
               userProfile={userProfile}
             />
+          )}
+
+          {activeTab === 'manual' && (
+            <ManualTab />
           )}
         </div>
       </div>

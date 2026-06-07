@@ -110,10 +110,6 @@ const HeaderComponent = () => {
               Contact Us
               <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/contact' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
-            <a href="/admin" className="relative py-1 group hover:text-blue-100 transition-colors">
-              Admin
-              <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/admin' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
-            </a>
           </nav>
           
           {/* Mobile Menu Icon */}
@@ -157,9 +153,6 @@ const HeaderComponent = () => {
               </a>
               <a href="/contact" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
                 Contact Us
-              </a>
-              <a href="/admin" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors text-amber-300">
-                Admin Portal
               </a>
             </nav>
           </div>

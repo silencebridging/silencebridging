@@ -1,4 +1,7 @@
+'use client';
+
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { 
   Home, 
   MessageCircle, 
@@ -131,8 +134,10 @@ const ChatWidget = () => {
 };
 
 const Footer = () => {
+  const pathname = usePathname();
+
   const navigationLinks = [
-    { name: 'Home', href: '/', icon: Home, active: true },
+    { name: 'Home', href: '/', icon: Home },
     { name: 'About Us', href: '/about' },
     { name: 'Services', href: '/services' },
     { name: "FAQ's", href: '/faq' },
@@ -174,20 +179,25 @@ const Footer = () => {
         <div className="max-w-6xl mx-auto px-4">
           {/* Navigation Links */}
           <div className="flex flex-wrap justify-center items-center gap-8 mb-12">
-            {navigationLinks.map((link, index) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className={`flex items-center gap-2 text-lg font-medium transition-all duration-300 hover:scale-105 ${
-                  link.active 
-                    ? 'text-blue-600 border-b-2 border-blue-600 pb-1' 
-                    : 'text-blue-600 hover:text-blue-800'
-                }`}
-              >
-                {link.icon && <link.icon className="w-5 h-5" />}
-                {link.name}
-              </a>
-            ))}
+            {navigationLinks.map((link, index) => {
+              const isActive = link.href === '/' 
+                ? pathname === '/' 
+                : pathname === link.href || pathname?.startsWith(link.href + '/');
+              return (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className={`flex items-center gap-2 text-lg font-medium transition-all duration-300 hover:scale-105 ${
+                    isActive 
+                      ? 'text-blue-600 border-b-2 border-blue-600 pb-1' 
+                      : 'text-blue-600 hover:text-blue-800'
+                  }`}
+                >
+                  {link.icon && <link.icon className="w-5 h-5" />}
+                  {link.name}
+                </a>
+              );
+            })}
           </div>
 
           {/* Social Media Icons */}
