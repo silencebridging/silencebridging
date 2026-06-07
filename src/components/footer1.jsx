@@ -200,10 +200,16 @@ const SponsorsSection = () => {
       </div>
 
       {/* Footer */}
-      <div className="bg-blue-600 text-white text-center py-4">
+      <div className="bg-blue-600 text-white text-center py-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4">
         <p className="font-medium">
           Copyright 2025- All Rights Reserved
         </p>
+        <a 
+          href="/admin" 
+          className="text-white/60 hover:text-white text-xs font-semibold underline decoration-dotted transition-colors"
+        >
+          Staff Portal
+        </a>
       </div>
 
       {/* Floating Buttons */}

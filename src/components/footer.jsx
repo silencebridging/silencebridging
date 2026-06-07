@@ -225,10 +225,16 @@ const Footer = () => {
         </div>
 
         {/* Copyright Section */}
-        <div className="bg-blue-600 text-white text-center py-5 w-full">
+        <div className="bg-blue-600 text-white text-center py-5 w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4">
           <p className="font-medium text-sm sm:text-base">
             {t('footer_copyright')}
           </p>
+          <a 
+            href="/admin" 
+            className="text-white/60 hover:text-white text-xs font-semibold underline decoration-dotted transition-colors"
+          >
+            Staff Portal
+          </a>
         </div>
 
         {/* Scroll to Top Button */}

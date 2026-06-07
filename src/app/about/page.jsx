@@ -6,6 +6,7 @@ import SponsorsSection from '@/components/sponsors';
 import Footer from '@/components/footer';
 import MissionSection from './_components/intro';
 import TeamImpactSection from './_components/team';
+import LibraryImages from './_components/LibraryImages';
 
 export default function AboutPage() {
   const router = useRouter();
@@ -20,6 +21,9 @@ export default function AboutPage() {
         
         {/* Team and Impact section (handles its own full-bleed and containers internally) */}
         <TeamImpactSection />
+
+        {/* Cloudinary Library Images component leading to the gallery page */}
+        <LibraryImages />
         
         {/* Sponsors section with a full-width container */}
         <div className="w-full bg-white py-16 border-t border-gray-100">

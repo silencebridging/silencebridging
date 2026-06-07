@@ -37,7 +37,8 @@ import {
   ClipboardList,
   Settings as SettingsIcon,
   Shield,
-  HelpCircle
+  HelpCircle,
+  Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -54,6 +55,7 @@ import PostsTab from './components/PostsTab';
 import ActivityTab from './components/ActivityTab';
 import SettingsTab from './components/SettingsTab';
 import ManualTab from './components/ManualTab';
+import GalleryTab from './components/GalleryTab';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -607,6 +609,7 @@ export default function AdminDashboard() {
             { id: 'feedback', label: 'User Feedback', icon: MessageSquare, count: feedbackList.filter(f => f.status === 'open').length },
             { id: 'tickets', label: 'Support Tickets', icon: LifeBuoy, count: tickets.filter(t => t.status === 'open').length },
             { id: 'posts', label: 'Content Management', icon: FileText },
+            { id: 'gallery', label: 'Media Library', icon: ImageIcon },
             { id: 'activity', label: 'Team Activity', icon: ClipboardList },
             { id: 'settings', label: 'Settings', icon: SettingsIcon },
             { id: 'manual', label: 'User Manual', icon: HelpCircle }
@@ -864,6 +867,10 @@ export default function AdminDashboard() {
               posts={posts}
               tickets={tickets}
             />
+          )}
+
+          {activeTab === 'gallery' && (
+            <GalleryTab />
           )}
 
           {activeTab === 'settings' && (
