@@ -1,49 +1,33 @@
 "use client"
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 const ProductsShowcase = () => {
   const [activeTab, setActiveTab] = useState('Get');
+  const { t } = useLanguage();
 
   const products = [
     {
       name: 'SautiBox',
-      subtitle: 'Hardware Device',
-      features: [
-        'Portable sign-to-speech converter',
-        '5" touchscreen& HD camera',
-        '100+ TSL',
-        'Offline functionality',
-        '6-hours battery life'
-      ],
-      buttonText: 'Order Now',
+      subtitle: t('prod_subtitle_sautibox'),
+      features: t('prod_features_sautibox') || [],
+      buttonText: t('prod_order_now'),
       buttonStyle: 'border-blue-600 text-blue-600 hover:bg-blue-50'
     },
     {
       name: 'BridgingApp',
-      subtitle: 'Mobile App',
-      features: [
-        'Real-time translations',
-        'iOS/Android compatible',
-        'Basic TSL tutorials',
-        'Conversation history(30 days)',
-        'Free and Premium access'
-      ],
-      buttonText: 'Download Now',
+      subtitle: t('prod_subtitle_bridgingapp'),
+      features: t('prod_features_bridgingapp') || [],
+      buttonText: t('prod_download_now'),
       buttonStyle: 'border-blue-600 text-blue-600 hover:bg-blue-50',
       isCenter: true
     },
     {
       name: 'SautiWeb',
-      subtitle: 'Enterprise Platform',
-      features: [
-        'Organization-wide accessibility suite',
-        'Admin dashboard for teams',
-        'SCORM-compliant training module',
-        'Analytical&reporting',
-        'Custom API integration'
-      ],
-      buttonText: 'Request Demo',
+      subtitle: t('prod_subtitle_sautiweb'),
+      features: t('prod_features_sautiweb') || [],
+      buttonText: t('prod_request_demo'),
       buttonStyle: 'border-blue-600 text-blue-600 hover:bg-blue-50'
     }
   ];
@@ -68,7 +52,7 @@ const ProductsShowcase = () => {
         {/* Heading */}
         <div className="text-center mt-6 mb-8">
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#1b64da] tracking-wide">
-            Products
+            {t('prod_title')}
           </h2>
         </div>
 
@@ -76,17 +60,20 @@ const ProductsShowcase = () => {
         <div className="flex justify-center mb-12">
           <div className="bg-[#1b64da]/10 border border-[#8b5cf6]/40 p-1.5 rounded-full shadow-inner flex items-center">
             <div className="bg-gradient-to-r from-[#8b5cf6] to-[#1b64da] p-0.5 rounded-full flex">
-              {['Get', 'View'].map((tab) => (
+              {[
+                { id: 'Get', label: t('prod_tab_get') },
+                { id: 'View', label: t('prod_tab_view') }
+              ].map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`px-8 py-2 rounded-full font-bold text-sm transition-all duration-300 cursor-pointer ${
-                    activeTab === tab
+                    activeTab === tab.id
                       ? 'bg-white text-[#1b64da] shadow-md'
                       : 'text-white hover:text-white/80'
                   }`}
                 >
-                  {tab}
+                  {tab.label}
                 </button>
                ))}
             </div>
@@ -114,7 +101,7 @@ const ProductsShowcase = () => {
 
               {/* Features List - Violet color matching screenshot */}
               <div className="space-y-4 mb-8 flex-grow">
-                {product.features.map((feature, featureIndex) => (
+                {Array.isArray(product.features) && product.features.map((feature, featureIndex) => (
                   <div
                     key={featureIndex}
                     className="flex items-start space-x-3 text-left"

@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from '@/context/LanguageContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,9 @@ export default function RootLayout({ children }) {
       >
         {/* Global wrapper with negative margins to combat any default spacing */}
         <div className="overflow-x-hidden w-screen max-w-[100vw] mx-[-1px]">
-          {children}
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
         </div>
       </body>
     </html>

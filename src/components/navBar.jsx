@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Home, Headphones, Search, ShoppingBag, Menu, X, Mail, Phone } from 'lucide-react';
+import { Home, Headphones, Search, ShoppingBag, Menu, X, Mail, Phone, Globe } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
 
 const HeaderComponent = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
+  const { language, setLanguage, t } = useLanguage();
 
   const images = ['/images/1.jpg', '/images/2.jpg', '/images/3.jpg'];
 
@@ -36,17 +38,15 @@ const HeaderComponent = () => {
       {/* Dim/Dark overlay for readability */}
       <div className="absolute inset-0 bg-black/20" />
 
-
-
       {/* FLOATING HEADER AREA */}
       <div className="absolute inset-x-0 top-0 z-30 flex flex-col items-center p-4 md:p-6 lg:p-8 w-full max-w-7xl mx-auto gap-4">
         
         {/* Layer 1: White Contact & Logo Bar */}
-        <div className="w-full bg-white rounded-2xl md:rounded-3xl shadow-xl px-4 md:px-8 lg:px-12 py-3 md:py-4 flex items-center justify-between transition-all">
+        <div className="w-full bg-white rounded-2xl md:rounded-3xl shadow-xl px-4 md:px-8 lg:px-12 py-3 md:py-4 flex items-center justify-between transition-all gap-4">
           {/* Brand Logo */}
           <a href="/" className="flex items-center space-x-3 shrink-0">
             <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 border border-gray-100 flex items-center justify-center shadow-md">
-              <img src="/bridgingsilenceicon.jpeg" alt="Bridging Silence Logo" className="w-full h-full object-cover" />
+              <img src="/bridgingsilenceicon.jpeg" alt={t('hero_title') + ' Logo'} className="w-full h-full object-cover" />
             </div>
           </a>
           
@@ -57,8 +57,8 @@ const HeaderComponent = () => {
                 <Headphones className="w-4 h-4" />
               </div>
               <div className="text-xs md:text-sm text-left leading-tight font-semibold">
-                <p className="text-gray-800 font-extrabold">Phone: <span className="text-gray-600 font-medium">+255 675 546 576</span></p>
-                <p className="text-gray-800 font-extrabold">Email: <span className="text-gray-600 font-medium">bridgingsilence@gmail.com</span></p>
+                <p className="text-gray-800 font-extrabold">{t('nav_phone')}: <span className="text-gray-600 font-medium">+255 675 546 576</span></p>
+                <p className="text-gray-800 font-extrabold">{t('nav_email')}: <span className="text-gray-600 font-medium">bridgingsilence@gmail.com</span></p>
               </div>
             </div>
           </div>
@@ -73,13 +73,39 @@ const HeaderComponent = () => {
             </a>
           </div>
           
-          {/* CTA Button */}
-          <button 
-            onClick={() => router.push('/services/signToSpeech')}
-            className="bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-xs md:text-sm px-5 py-2.5 rounded-full transition-all shadow-md shadow-sky-500/25 flex items-center gap-1.5"
-          >
-            Get Started
-          </button>
+          {/* Language Switcher & CTA */}
+          <div className="flex items-center gap-3 md:gap-4 shrink-0">
+            {/* Language Switcher */}
+            <div className="flex items-center bg-gray-100 p-0.5 md:p-1 rounded-full border border-gray-200">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-2.5 py-1 rounded-full text-[10px] md:text-xs font-black transition-all ${
+                  language === 'en'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                EN
+              </button>
+              <button
+                onClick={() => setLanguage('sw')}
+                className={`px-2.5 py-1 rounded-full text-[10px] md:text-xs font-black transition-all ${
+                  language === 'sw'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                SW
+              </button>
+            </div>
+
+            <button 
+              onClick={() => router.push('/services/signToSpeech')}
+              className="bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-xs md:text-sm px-4 md:px-5 py-2 md:py-2.5 rounded-full transition-all shadow-md shadow-sky-500/25 flex items-center gap-1.5 shrink-0"
+            >
+              {t('nav_get_started')}
+            </button>
+          </div>
         </div>
 
         {/* Layer 2: Floating Blue Navigation Card */}
@@ -91,23 +117,23 @@ const HeaderComponent = () => {
               <span className="absolute bottom-[-6px] left-0 w-full h-0.5 bg-white scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
             </a>
             <a href="/about" className="relative py-1 group hover:text-blue-100 transition-colors">
-              About Us
+              {t('nav_about')}
               <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/about' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
             <a href="/services" className="relative py-1 group hover:text-blue-100 transition-colors">
-              Services
+              {t('nav_services')}
               <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/services' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
             <a href="/faq" className="relative py-1 group hover:text-blue-100 transition-colors">
-              FAQ's
+              {t('nav_faq')}
               <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/faq' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
             <a href="/blog" className="relative py-1 group hover:text-blue-100 transition-colors">
-              Blog
+              {t('nav_blog')}
               <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/blog' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
             <a href="/contact" className="relative py-1 group hover:text-blue-100 transition-colors">
-              Contact Us
+              {t('nav_contact')}
               <span className={`absolute bottom-[-6px] left-0 w-full h-0.5 bg-white transition-transform origin-left ${pathname === '/contact' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
           </nav>
@@ -122,11 +148,11 @@ const HeaderComponent = () => {
           
           {/* Icons and Dividers */}
           <div className="flex items-center space-x-3 md:space-x-4">
-            <button className="text-white hover:text-blue-100 transition-colors p-1">
+            <button className="text-white hover:text-blue-100 transition-colors p-1" aria-label="Shopping Cart">
               <ShoppingBag className="w-5 h-5" />
             </button>
             <div className="h-5 w-[1px] bg-white/25 hidden md:block" />
-            <button className="text-white hover:text-blue-100 transition-colors p-1">
+            <button className="text-white hover:text-blue-100 transition-colors p-1" aria-label="Search">
               <Search className="w-5 h-5" />
             </button>
           </div>
@@ -137,22 +163,22 @@ const HeaderComponent = () => {
           <div className="w-full max-w-4xl bg-blue-700/95 backdrop-blur-md rounded-2xl shadow-xl mt-1 overflow-hidden md:hidden border border-blue-600/30 animate-fadeIn">
             <nav className="flex flex-col p-4 text-white text-sm font-extrabold tracking-wide divide-y divide-blue-600/50">
               <a href="/" className="py-3 px-2 flex items-center gap-2 hover:bg-blue-800/50 rounded-lg transition-colors">
-                <Home className="w-4 h-4" /> Home
+                <Home className="w-4 h-4" /> {t('nav_home')}
               </a>
               <a href="/about" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
-                About Us
+                {t('nav_about')}
               </a>
               <a href="/services" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
-                Services
+                {t('nav_services')}
               </a>
               <a href="/faq" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
-                FAQ's
+                {t('nav_faq')}
               </a>
               <a href="/blog" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
-                Blog
+                {t('nav_blog')}
               </a>
               <a href="/contact" className="py-3 px-2 hover:bg-blue-800/50 rounded-lg transition-colors">
-                Contact Us
+                {t('nav_contact')}
               </a>
             </nav>
           </div>
@@ -162,10 +188,10 @@ const HeaderComponent = () => {
       {/* Hero Center Text Banner */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none mt-16 md:mt-24">
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white drop-shadow-lg tracking-tight leading-tight max-w-4xl animate-slideUp">
-          Bridging Silence
+          {t('hero_title')}
         </h1>
         <p className="text-xs sm:text-sm md:text-lg text-white/95 mt-3 max-w-xl font-bold tracking-widest uppercase drop-shadow-md animate-slideUp">
-          Connecting Communities Through Communication
+          {t('hero_subtitle')}
         </p>
       </div>
 

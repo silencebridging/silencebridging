@@ -1,9 +1,13 @@
-'use client'
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 const ProblemSolutionComponent = () => {
+  const { t } = useLanguage();
+
   return (
     <div className="bg-white py-16 px-6 relative overflow-hidden">
       {/* Background gradient decoration */}
@@ -20,13 +24,11 @@ const ProblemSolutionComponent = () => {
             </div>
             
             <h2 className="text-4xl font-bold text-gray-900">
-              The <span className="text-blue-600">Silent Struggle</span> is Real.
+              {t('desc_prob_title_1')} <span className="text-blue-600">{t('desc_prob_title_color')}</span> {t('desc_prob_title_2')}
             </h2>
             
             <p className="text-lg text-gray-600 leading-relaxed">
-              466 million people including students live with disabling hearing loss, yet everyday conversation 
-              remain a challenge. Misunderstandings, isolation, and lack of accessible tools creates barriers 
-              between the Deaf and hearing worlds.
+              {t('desc_prob_content')}
             </p>
             
             <button className="flex items-center space-x-4 bg-transparent border-0 p-0 cursor-pointer group">
@@ -38,7 +40,7 @@ const ProblemSolutionComponent = () => {
                 </div>
               </div>
               <span className="font-semibold text-[#1b64da] text-base group-hover:text-[#1552b9] transition-colors duration-300">
-                Watch Video
+                {t('desc_watch_video')}
               </span>
             </button>
           </div>
@@ -79,18 +81,15 @@ const ProblemSolutionComponent = () => {
             </div>
             
             <h2 className="text-4xl font-bold text-gray-900">
-              Bridging <span className="text-blue-600">Silence</span> Fixes This.
+              {t('desc_sol_title_1')} <span className="text-blue-600">{t('desc_sol_title_color')}</span> {t('desc_sol_title_2')}
             </h2>
             
             <p className="text-lg text-blue-600 font-medium italic">
-              Where Technology Meets Inclusion
+              {t('desc_sol_tagline')}
             </p>
             
             <p className="text-lg text-gray-600 leading-relaxed">
-              We turn barriers into bridges with real-time tools: 
-              <span className="italic font-medium"> speech-to-text, sign language translation</span>, and 
-              <span className="italic font-medium"> inclusive community platforms</span>. Now everyone 
-              can connect without limits.
+              {t('desc_sol_content')}
             </p>
             
             <button className="flex items-center space-x-4 bg-transparent border-0 p-0 cursor-pointer group">
@@ -102,7 +101,7 @@ const ProblemSolutionComponent = () => {
                 </div>
               </div>
               <span className="font-semibold text-[#1b64da] text-base group-hover:text-[#1552b9] transition-colors duration-300 flex items-center space-x-1">
-                <span>Watch Demo</span>
+                <span>{t('desc_watch_demo')}</span>
                 <span className="text-xl">🎯</span>
               </span>
             </button>

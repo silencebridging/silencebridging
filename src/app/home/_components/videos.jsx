@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Play } from 'lucide-react';
 import SponsorsSection from '@/components/sponsors';
+import { useLanguage } from '@/context/LanguageContext';
 
 const SignMuseumComponent = () => {
   const [activeVideo, setActiveVideo] = useState(2);
+  const { language, t } = useLanguage();
   
   const videos = [
     {
@@ -68,9 +70,15 @@ const SignMuseumComponent = () => {
         
         {/* Sign Museum Videos Section */}
         <div className="text-center space-y-12 mb-20">
-          <h2 className="text-4xl font-bold text-gray-900">
-            <span className="text-blue-600">Sign</span> Museum <span className="text-blue-600">Videos</span>
-          </h2>
+          {language === 'sw' ? (
+            <h2 className="text-4xl font-bold text-gray-900">
+              Makumbusho ya <span className="text-blue-600">Video za Alama</span>
+            </h2>
+          ) : (
+            <h2 className="text-4xl font-bold text-gray-900">
+              <span className="text-blue-600">Sign</span> Museum <span className="text-blue-600">Videos</span>
+            </h2>
+          )}
           
           {/* Carousel container without Navigation Buttons */}
           <div className="flex items-center justify-center max-w-5xl mx-auto py-4 overflow-visible">
@@ -142,11 +150,11 @@ const SignMuseumComponent = () => {
           {/* Description and CTA */}
           <div className="space-y-6">
             <p className="text-gray-600 text-lg max-w-md mx-auto">
-              By clicking the button below, explore all videos of TSL...
+              {t('vid_desc')}
             </p>
             
             <button className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105">
-              View All 121+ Videos
+              {t('vid_view_all')}
             </button>
           </div>
         </div>

@@ -3,9 +3,11 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Mic, MessageSquare, Volume2, Fingerprint } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 const VoiceServicesComponent = () => {
   const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-[600px] md:min-h-[800px] bg-white p-6 md:p-12 lg:p-20 relative overflow-hidden flex items-center justify-center font-sans z-10">
@@ -34,7 +36,7 @@ const VoiceServicesComponent = () => {
                     <Fingerprint className="w-10 h-10" />
                   </div>
                   <h3 className="text-blue-600 font-extrabold text-[13px] md:text-sm italic tracking-wide mt-4">
-                    Sign Language
+                    {t('srv_sign_language')}
                   </h3>
                 </div>
 
@@ -47,7 +49,7 @@ const VoiceServicesComponent = () => {
                     <Volume2 className="w-10 h-10" />
                   </div>
                   <h3 className="text-blue-600 font-extrabold text-[13px] md:text-sm italic tracking-wide mt-4">
-                    Sign-to-Sauti
+                    {t('srv_sign_to_sauti')}
                   </h3>
                 </div>
               </div>
@@ -63,7 +65,7 @@ const VoiceServicesComponent = () => {
                     <Mic className="w-10 h-10" />
                   </div>
                   <h3 className="text-blue-600 font-extrabold text-[13px] md:text-sm italic tracking-wide mt-4">
-                    Sauti-to-Sign
+                    {t('srv_sauti_to_sign')}
                   </h3>
                 </div>
 
@@ -76,7 +78,7 @@ const VoiceServicesComponent = () => {
                     <MessageSquare className="w-10 h-10" />
                   </div>
                   <h3 className="text-blue-600 font-extrabold text-[13px] md:text-sm italic tracking-wide mt-4">
-                    Sign-to-Text
+                    {t('srv_sign_to_text')}
                   </h3>
                 </div>
               </div>
@@ -89,13 +91,13 @@ const VoiceServicesComponent = () => {
                 onClick={() => router.push('/services/signToSpeech')}
                 className="border border-blue-600 hover:bg-blue-600 hover:text-white text-blue-600 px-6 py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 shadow-sm hover:shadow-md"
               >
-                Get Started
+                {t('nav_get_started')}
               </button>
               <button 
                 onClick={() => router.push('/services/signToSpeech')}
                 className="border border-blue-600 hover:bg-blue-600 hover:text-white text-blue-600 px-6 py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 shadow-sm hover:shadow-md"
               >
-                Join Live Conversation
+                {t('srv_join_live')}
               </button>
             </div>
           </div>
@@ -103,11 +105,11 @@ const VoiceServicesComponent = () => {
           {/* Right Side: Headline and copy */}
           <div className="text-left space-y-6 lg:pl-6">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
-              Every <span className="text-blue-600">Voice</span> Deserve To Be <span className="text-blue-600">Heard</span>
+              {t('srv_title_bold_1')} <span className="text-blue-600">{t('srv_title_color_1')}</span> {t('srv_title_bold_2')} <span className="text-blue-600">{t('srv_title_color_2')}</span>
             </h2>
             
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed font-medium max-w-lg">
-              Bridging Silence creates seamless communication between spoken and signed languages through innovative technology.
+              {t('srv_desc')}
             </p>
 
             <div className="pt-2">
@@ -115,7 +117,7 @@ const VoiceServicesComponent = () => {
                 onClick={() => router.push('/services')}
                 className="border border-blue-600 hover:bg-blue-600 hover:text-white text-blue-600 px-6 py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300"
               >
-                How to start?
+                {t('srv_how_to_start')}
               </button>
             </div>
           </div>
