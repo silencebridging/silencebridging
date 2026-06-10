@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Settings, RefreshCw, Save, AlertCircle, Maximize2, Minimize2, Copy, Volume2, Download, Trash2, X, Play, Pause } from 'lucide-react';
+import { Settings, RefreshCw, Save, AlertCircle, Maximize2, Minimize2, Copy, Download, Trash2, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const MediaPipeLoader = dynamic(
@@ -26,7 +26,6 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
   const [predictedLetter, setPredictedLetter] = useState('');
   const [isPredicting, setIsPredicting] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isCardCollapsed, setIsCardCollapsed] = useState(false);
   const [backendStatus, setBackendStatus] = useState('connecting');
 
@@ -56,7 +55,6 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
         if (res.ok || res.status === 200) {
           setBackendStatus('connected');
         } else {
-          // If CORS blocks it but it resolves, it might return status 0 on opaque, but standard GET will now pass CORS
           setBackendStatus('connected');
         }
       } catch (err) {
@@ -70,7 +68,7 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
   }, []);
 
   const handleMediaPipeReady = () => {
-    console.log('MediaPipe libraries loaded successfully');
+    console.log('MediaPipe libraries loaded successfully for Sign-to-Text');
     setMediaPipeReady(true);
   };
 
@@ -437,15 +435,6 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
     }
   };
 
-  const handlePlayAudioSpeech = () => {
-    if (translatedText && 'speechSynthesis' in window) {
-      setIsPlayingAudio(true);
-      const utterance = new SpeechSynthesisUtterance(translatedText);
-      utterance.onend = () => setIsPlayingAudio(false);
-      speechSynthesis.speak(utterance);
-    }
-  };
-
   return (
     <div className="bg-gray-50 relative">
       <MediaPipeLoader onReady={handleMediaPipeReady} />
@@ -655,7 +644,7 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
                             )}
                           </div>
 
-                          {/* Copy / Speak Controls */}
+                          {/* Copy / Clear Controls */}
                           <div className="flex gap-2 mb-3">
                             <button
                               onClick={handleCopyTranslatedText}
@@ -663,16 +652,16 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
                               className="flex-1 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1b64da] text-[11px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                             >
                               <Copy className="w-3 h-3" />
-                              Copy
+                              Copy Text
                             </button>
                             
                             <button
-                              onClick={handlePlayAudioSpeech}
-                              disabled={!translatedText || isPlayingAudio}
-                              className="flex-1 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#8b5cf6] text-[11px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                              onClick={() => setTranslatedText('')}
+                              disabled={!translatedText}
+                              className="flex-1 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 text-[11px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                             >
-                              <Volume2 className="w-3 h-3" />
-                              {isPlayingAudio ? 'Speaking...' : 'Speak'}
+                              <Trash2 className="w-3 h-3" />
+                              Clear Text
                             </button>
                           </div>
 
@@ -681,22 +670,22 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
                             <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Simulate</div>
                             <div className="flex flex-wrap gap-1">
                               <button
-                                onClick={() => setTranslatedText(prev => prev + (prev ? ' ' : '') + 'Hello')}
+                                onClick={() => setTranslatedText(prev => prev + (prev ? ' ' : '') + 'Habari')}
                                 className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[9px] font-bold px-2 py-0.5 rounded transition-colors"
                               >
-                                "Hello"
+                                "Habari"
                               </button>
                               <button
-                                onClick={() => setTranslatedText(prev => prev + (prev ? ' ' : '') + 'Thank you')}
+                                onClick={() => setTranslatedText(prev => prev + (prev ? ' ' : '') + 'Asante')}
                                 className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[9px] font-bold px-2 py-0.5 rounded transition-colors"
                               >
-                                "Thank you"
+                                "Asante"
                               </button>
                               <button
-                                onClick={() => setTranslatedText(prev => prev + (prev ? ' ' : '') + 'Yes')}
+                                onClick={() => setTranslatedText(prev => prev + (prev ? ' ' : '') + 'Ndiyo')}
                                 className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[9px] font-bold px-2 py-0.5 rounded transition-colors"
                               >
-                                "Yes"
+                                "Ndiyo"
                               </button>
                             </div>
                           </div>
@@ -719,14 +708,6 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
                             title="Copy text"
                           >
                             <Copy className="w-3.5 h-3.5" />
-                          </button>
-                          <button 
-                            onClick={handlePlayAudioSpeech} 
-                            disabled={!translatedText || isPlayingAudio}
-                            className={`p-1.5 hover:bg-white/10 rounded-lg text-purple-400 hover:text-purple-300 disabled:opacity-30 disabled:pointer-events-none transition-colors ${isPlayingAudio ? 'animate-pulse' : ''}`}
-                            title="Speak text"
-                          >
-                            <Volume2 className="w-3.5 h-3.5" />
                           </button>
                           <button 
                             onClick={() => setTranslatedText('')} 
@@ -828,9 +809,9 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
                     </span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-800 text-sm">Predicted Sign</h4>
+                    <h4 className="font-bold text-gray-800 text-sm">Predicted Letter</h4>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {isPredicting ? 'Analyzing hand position...' : predictedLetter ? `Letter "${predictedLetter}" detected` : 'Make a sign with your right hand'}
+                      {isPredicting ? 'Analyzing hand position...' : predictedLetter ? `Letter "${predictedLetter}" detected` : 'Make a sign with your hand'}
                     </p>
                   </div>
                 </div>

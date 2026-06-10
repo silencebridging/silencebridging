@@ -11,6 +11,10 @@ export default function BridgingSilenceHero() {
     router.push('/services/signToSpeech');
   };
 
+  const navigateToSignToText = () => {
+    router.push('/services/signToText');
+  };
+
   return (
     <div className="w-full min-h-screen bg-white relative overflow-hidden py-16 flex items-center">
       
@@ -95,8 +99,11 @@ export default function BridgingSilenceHero() {
                   </h3>
                 </div>
                 
-                {/* Sign-to-Text Card */}
-                <div className="bg-white rounded-[2rem] shadow-[0_10px_35px_rgba(0,0,0,0.04)] border border-gray-100 w-40 sm:w-44 h-56 sm:h-64 flex flex-col justify-between items-center p-6 hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer">
+                {/* Sign-to-Text Card (Navigates to /services/signToText) */}
+                <div 
+                  onClick={navigateToSignToText}
+                  className="bg-white rounded-[2rem] shadow-[0_10px_35px_rgba(0,0,0,0.04)] border border-gray-100 w-40 sm:w-44 h-56 sm:h-64 flex flex-col justify-between items-center p-6 hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer"
+                >
                   <div className="flex-grow flex items-center justify-center">
                     <MessageSquare className="w-10 h-10 text-[#8b5cf6]" />
                   </div>
