@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Settings, RefreshCw, Save, AlertCircle, Maximize2, Minimize2, Copy, Download, Trash2, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -9,7 +9,7 @@ const MediaPipeLoader = dynamic(
   { ssr: false }
 );
 
-export default function CameraInterface({ translatedText, setTranslatedText }) {
+const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [stream, setStream] = useState(null);
@@ -34,6 +34,17 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
   const saveIntervalRef = useRef(null);
   const predictionTimeoutRef = useRef(null);
   const lastPredictionTimeRef = useRef(0);
+  const wsRef = useRef(null);
+  const captureIntervalRef = useRef(null);
+  const isTranslatingRef = useRef(false);
+  const isPausedRef = useRef(false);
+  const isCollectingRef = useRef(false);
+  const isPredictingRef = useRef(false);
+
+  useEffect(() => { isTranslatingRef.current = isTranslating; }, [isTranslating]);
+  useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
+  useEffect(() => { isCollectingRef.current = isCollecting; }, [isCollecting]);
+  useEffect(() => { isPredictingRef.current = isPredicting; }, [isPredicting]);
 
   // Lock scroll when immersive fullscreen is active
   useEffect(() => {
@@ -64,8 +75,128 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
 
     checkBackend();
     const interval = setInterval(checkBackend, 15000);
-    return () => clearInterval(interval);
   }, []);
+
+  // Manage WebSocket connection during translation
+  useEffect(() => {
+    if (isTranslating && !isPaused && stream) {
+      const wsUrl = 'wss://web-production-f2f32.up.railway.app/ws';
+      console.log('Connecting to WebSocket:', wsUrl);
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        console.log('WebSocket connection established.');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'prediction' || data.type === 'state_update') {
+            if (data.letter !== undefined) {
+              setPredictedLetter(data.letter);
+            }
+            
+            // Build the translation string
+            let combined = '';
+            if (data.sentence) combined += data.sentence;
+            if (data.word) {
+              if (combined) combined += ' ';
+              combined += data.word;
+            }
+            setTranslatedText(combined);
+          }
+        } catch (e) {
+          console.error('WebSocket message parsing error:', e);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket connection closed.');
+      };
+
+      // Start frame capture loop
+      const captureCanvas = document.createElement('canvas');
+      const captureCtx = captureCanvas.getContext('2d');
+
+      captureIntervalRef.current = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN && videoRef.current) {
+          const video = videoRef.current;
+          if (video.videoWidth && video.videoHeight) {
+            captureCanvas.width = video.videoWidth;
+            captureCanvas.height = video.videoHeight;
+            captureCtx.drawImage(video, 0, 0);
+
+            const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.6);
+            
+            // Detect camera facing
+            let currentFacing = facingMode;
+            if (stream) {
+              const track = stream.getVideoTracks()[0];
+              if (track) {
+                const settings = track.getSettings();
+                if (settings.facingMode) {
+                  currentFacing = settings.facingMode;
+                }
+              }
+            }
+
+            // Get rotation
+            let rotation = 0;
+            if (typeof window !== 'undefined') {
+              if (window.screen?.orientation?.angle !== undefined) {
+                rotation = window.screen.orientation.angle;
+              } else if (window.orientation !== undefined) {
+                rotation = ((window.orientation % 360) + 360) % 360;
+              }
+            }
+
+            const msg = {
+              type: 'frame',
+              frame: dataUrl,
+              camera: {
+                facing: currentFacing,
+                rotation: rotation,
+                mirrored: false,
+                width: video.videoWidth,
+                height: video.videoHeight
+              }
+            };
+            ws.send(JSON.stringify(msg));
+          }
+        }
+      }, 100); // 10 fps
+
+      return () => {
+        if (captureIntervalRef.current) {
+          clearInterval(captureIntervalRef.current);
+          captureIntervalRef.current = null;
+        }
+        if (wsRef.current) {
+          wsRef.current.close();
+          wsRef.current = null;
+        }
+      };
+    }
+  }, [isTranslating, isPaused, stream, facingMode]);
+
+  const sendWSCommand = (command) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'command', command }));
+    }
+    if (command === 'clear') {
+      setTranslatedText('');
+      setPredictedLetter('');
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    sendWSCommand
+  }));
 
   const handleMediaPipeReady = () => {
     console.log('MediaPipe libraries loaded successfully for Sign-to-Text');
@@ -73,10 +204,11 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
   };
 
   const predictLetterFromLandmarks = async (landmarks) => {
-    if (!landmarks || landmarks.length === 0 || isPredicting) return;
+    if (!landmarks || landmarks.length === 0 || isPredictingRef.current) return;
     
     try {
       setIsPredicting(true);
+      isPredictingRef.current = true;
       
       const formattedLandmarks = landmarks.map(landmark => [
         landmark.x, 
@@ -113,6 +245,7 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
     } finally {
       setTimeout(() => {
         setIsPredicting(false);
+        isPredictingRef.current = false;
       }, 500);
     }
   };
@@ -135,15 +268,15 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
           // No longer calling drawConnectors or drawLandmarks here
           // to keep the video feed 100% clean of skeletons/dots.
           
-          if (isCollecting) {
+          if (isCollectingRef.current) {
             const collectedLandmarks = [...landmarks];
             setHandLandmarks(prevLandmarks => [...prevLandmarks, collectedLandmarks]);
             setLandmarkCount(prev => prev + 1);
           }
           
-          if (isTranslating && !isPaused) {
+          if (isTranslatingRef.current && !isPausedRef.current) {
             const now = Date.now();
-            if (!isPredicting && (now - lastPredictionTimeRef.current > 1200)) {
+            if (!isPredictingRef.current && (now - lastPredictionTimeRef.current > 1200)) {
               lastPredictionTimeRef.current = now;
               predictLetterFromLandmarks(landmarks);
             }
@@ -201,7 +334,7 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
           if (window.Camera) {
             cameraRef.current = new window.Camera(videoRef.current, {
               onFrame: async () => {
-                if (handsRef.current && !isPaused) {
+                if (handsRef.current && isCollectingRef.current) {
                   await handsRef.current.send({ image: videoRef.current });
                 }
               }
@@ -586,7 +719,7 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
                             
                             <div className="flex items-center gap-2">
                               <button 
-                                onClick={() => setTranslatedText('')}
+                                onClick={() => sendWSCommand('clear')}
                                 className="text-[9px] text-gray-400 hover:text-red-500 font-extrabold uppercase transition-colors"
                               >
                                 Clear
@@ -710,7 +843,7 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
                             <Copy className="w-3.5 h-3.5" />
                           </button>
                           <button 
-                            onClick={() => setTranslatedText('')} 
+                            onClick={() => sendWSCommand('clear')} 
                             disabled={!translatedText}
                             className="p-1.5 hover:bg-white/10 rounded-lg text-red-400 hover:text-red-300 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                             title="Clear text"
@@ -898,4 +1031,8 @@ export default function CameraInterface({ translatedText, setTranslatedText }) {
       </div>
     </div>
   );
-}
+});
+
+CameraInterface.displayName = 'CameraInterface';
+
+export default CameraInterface;

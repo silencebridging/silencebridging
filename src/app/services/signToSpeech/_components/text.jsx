@@ -1,7 +1,7 @@
 import { MoreVertical, Copy, Download, Volume2 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function TranslationOutput({ translatedText, setTranslatedText }) {
+export default function TranslationOutput({ translatedText, setTranslatedText, onCommand }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -12,7 +12,34 @@ export default function TranslationOutput({ translatedText, setTranslatedText })
 
   const handleCopy = () => {
     navigator.clipboard.writeText(translatedText);
-    // You could add a toast notification here
+  };
+
+  const handleClear = () => {
+    if (onCommand) {
+      onCommand('clear');
+    } else {
+      setTranslatedText('');
+    }
+  };
+
+  const handleDeleteLetter = () => {
+    if (onCommand) {
+      onCommand('delete_letter');
+    } else {
+      setTranslatedText(prev => prev.slice(0, -1));
+    }
+  };
+
+  const handleDeleteWord = () => {
+    if (onCommand) {
+      onCommand('delete_word');
+    } else {
+      setTranslatedText(prev => {
+        const words = prev.trim().split(' ');
+        if (words.length <= 1) return '';
+        return words.slice(0, -1).join(' ') + ' ';
+      });
+    }
   };
 
   const handleDownload = () => {
@@ -102,13 +129,13 @@ export default function TranslationOutput({ translatedText, setTranslatedText })
                     </div>
                     
                     {/* Quick Actions */}
-                    <div className="flex items-center space-x-3 pt-4 border-t border-gray-200">
+                    <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-200">
                       <button
                         onClick={handleCopy}
                         className="flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors duration-200"
                       >
                         <Copy className="w-4 h-4" />
-                        <span className="text-sm">Copy</span>
+                        <span className="text-sm font-semibold">Copy</span>
                       </button>
                       <button
                         onClick={handlePlayAudio}
@@ -116,7 +143,25 @@ export default function TranslationOutput({ translatedText, setTranslatedText })
                         className="flex items-center space-x-2 px-3 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors duration-200 disabled:opacity-50"
                       >
                         <Volume2 className="w-4 h-4" />
-                        <span className="text-sm">{isPlaying ? 'Playing...' : 'Play'}</span>
+                        <span className="text-sm font-semibold">{isPlaying ? 'Playing...' : 'Play'}</span>
+                      </button>
+                      <button
+                        onClick={handleDeleteLetter}
+                        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        <span className="text-sm font-semibold">⌫ Letter</span>
+                      </button>
+                      <button
+                        onClick={handleDeleteWord}
+                        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        <span className="text-sm font-semibold">🗑 Word</span>
+                      </button>
+                      <button
+                        onClick={handleClear}
+                        className="flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                      >
+                        <span className="text-sm font-semibold">Clear</span>
                       </button>
                     </div>
                   </div>
@@ -154,7 +199,7 @@ export default function TranslationOutput({ translatedText, setTranslatedText })
                   Demo: "Good morning! Beautiful day"
                 </button>
                 <button
-                  onClick={() => setTranslatedText('')}
+                  onClick={handleClear}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 text-sm"
                 >
                   Clear

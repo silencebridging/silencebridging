@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '@/components/navBar';
 import SponsorsSection from '@/components/sponsors';
@@ -12,6 +12,7 @@ import TranslationOutput from './_components/text';
 export default function SignToSpeechPage() {
   const router = useRouter();
   const [translatedText, setTranslatedText] = useState('');
+  const cameraRef = useRef(null);
   
   return (
     <div className="min-h-screen flex flex-col w-full">
@@ -23,6 +24,7 @@ export default function SignToSpeechPage() {
         
         {/* Camera stream tracking with shared translation state */}
         <CameraInterface 
+          ref={cameraRef}
           translatedText={translatedText}
           setTranslatedText={setTranslatedText}
         />
@@ -31,6 +33,7 @@ export default function SignToSpeechPage() {
         <TranslationOutput 
           translatedText={translatedText}
           setTranslatedText={setTranslatedText}
+          onCommand={(cmd) => cameraRef.current?.sendWSCommand(cmd)}
         />
         
         {/* Shared Sponsors Section */}

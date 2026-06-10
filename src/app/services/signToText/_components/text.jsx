@@ -3,7 +3,7 @@
 import { MoreVertical, Copy, Download, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function TranslationOutput({ translatedText, setTranslatedText }) {
+export default function TranslationOutput({ translatedText, setTranslatedText, onCommand }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const simulateTranslation = (text) => {
@@ -14,6 +14,34 @@ export default function TranslationOutput({ translatedText, setTranslatedText })
     navigator.clipboard.writeText(translatedText);
   };
 
+  const handleClear = () => {
+    if (onCommand) {
+      onCommand('clear');
+    } else {
+      setTranslatedText('');
+    }
+  };
+
+  const handleDeleteLetter = () => {
+    if (onCommand) {
+      onCommand('delete_letter');
+    } else {
+      setTranslatedText(prev => prev.slice(0, -1));
+    }
+  };
+
+  const handleDeleteWord = () => {
+    if (onCommand) {
+      onCommand('delete_word');
+    } else {
+      setTranslatedText(prev => {
+        const words = prev.trim().split(' ');
+        if (words.length <= 1) return '';
+        return words.slice(0, -1).join(' ') + ' ';
+      });
+    }
+  };
+
   const handleDownload = () => {
     const element = document.createElement('a');
     const file = new Blob([translatedText], { type: 'text/plain' });
@@ -22,10 +50,6 @@ export default function TranslationOutput({ translatedText, setTranslatedText })
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-  };
-
-  const handleClear = () => {
-    setTranslatedText('');
   };
 
   return (
@@ -96,7 +120,7 @@ export default function TranslationOutput({ translatedText, setTranslatedText })
                     </div>
                     
                     {/* Quick Actions */}
-                    <div className="flex items-center space-x-3 pt-4 border-t border-gray-200">
+                    <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-200">
                       <button
                         onClick={handleCopy}
                         className="flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors duration-200"
@@ -106,11 +130,25 @@ export default function TranslationOutput({ translatedText, setTranslatedText })
                       </button>
                       
                       <button
+                        onClick={handleDeleteLetter}
+                        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        <span className="text-sm font-semibold font-sans">⌫ Letter</span>
+                      </button>
+                      
+                      <button
+                        onClick={handleDeleteWord}
+                        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        <span className="text-sm font-semibold font-sans">🗑 Word</span>
+                      </button>
+                      
+                      <button
                         onClick={handleClear}
                         className="flex items-center space-x-2 px-3 py-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span className="text-sm font-semibold">Clear</span>
+                        <span className="text-sm font-semibold font-sans">Clear</span>
                       </button>
                     </div>
                   </div>

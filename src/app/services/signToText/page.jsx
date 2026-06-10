@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import HeaderComponent from '@/components/navBar';
 import SponsorsSection from '@/components/sponsors';
 import Footer from '@/components/footer';
@@ -10,6 +10,7 @@ import TranslationOutput from './_components/text';
 
 export default function SignToTextPage() {
   const [translatedText, setTranslatedText] = useState('');
+  const cameraRef = useRef(null);
   
   return (
     <div className="min-h-screen flex flex-col w-full">
@@ -21,6 +22,7 @@ export default function SignToTextPage() {
         
         {/* Camera stream tracking with shared translation state */}
         <CameraInterface 
+          ref={cameraRef}
           translatedText={translatedText}
           setTranslatedText={setTranslatedText}
         />
@@ -29,6 +31,7 @@ export default function SignToTextPage() {
         <TranslationOutput 
           translatedText={translatedText}
           setTranslatedText={setTranslatedText}
+          onCommand={(cmd) => cameraRef.current?.sendWSCommand(cmd)}
         />
         
         {/* Shared Sponsors Section */}
