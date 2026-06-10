@@ -19,6 +19,12 @@ const translations = {
     hero_title: 'Bridging Silence',
     hero_subtitle: 'CONNECTING COMMUNITIES THROUGH COMMUNICATION',
     language_select: 'Language',
+    // Promo Banner
+    banner_try_now_badge: 'Try Live Now',
+    banner_title: 'Real-Time Alphabet Translation is Live!',
+    banner_desc: 'Experience our newly improved, high-accuracy sign language alphabet translator. Try fingerspelling words and sentences directly through your web camera today!',
+    banner_cta_speech: 'Try Sign-to-Speech',
+    banner_cta_text: 'Try Sign-to-Text',
 
     // Voice Services Component
     srv_sign_language: 'Sign Language',
@@ -104,6 +110,12 @@ const translations = {
     hero_title: 'Kuziba Kimya',
     hero_subtitle: 'KUUNGANISHA JAMII KUPITIA MAWASILIANO',
     language_select: 'Lugha',
+    // Promo Banner
+    banner_try_now_badge: 'Jaribu Sasa Hivi',
+    banner_title: 'Tafsiri ya Alfabeti za Alama Imeanza!',
+    banner_desc: 'Shuhudia mfumo wetu mpya ulioboreshwa wa tafsiri ya alfabeti za lugha ya alama wenye usahihi wa juu. Tahajia maneno na sentensi kwa kamera yako ya wavuti leo!',
+    banner_cta_speech: 'Jaribu Alama-kwenda-Sauti',
+    banner_cta_text: 'Jaribu Alama-kwenda-Maandishi',
 
     // Voice Services Component
     srv_sign_language: 'Lugha ya Alama',

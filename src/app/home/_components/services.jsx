@@ -10,7 +10,7 @@ const VoiceServicesComponent = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-[600px] md:min-h-[800px] bg-white p-6 md:p-12 lg:p-20 relative overflow-hidden flex items-center justify-center font-sans z-10">
+    <div className="min-h-[600px] md:min-h-[800px] bg-transparent p-6 md:p-12 lg:p-20 relative overflow-hidden flex items-center justify-center font-sans z-10">
       
       {/* Top Left angled animated pills/capsules */}
       <div className="absolute top-[-80px] left-[-20px] md:top-[-140px] md:left-[-30px] flex gap-4 rotate-[40deg] opacity-95 pointer-events-none z-0">
@@ -43,7 +43,7 @@ const VoiceServicesComponent = () => {
                 {/* 2. Sign-to-Sauti Card */}
                 <div 
                   onClick={() => router.push('/services/signToSpeech')}
-                  className="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.12)] border border-gray-100/50 flex flex-col items-center justify-center text-center aspect-square transition-all duration-300 hover:-translate-y-2 group cursor-pointer"
+                  className="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.08)] border border-blue-200/80 flex flex-col items-center justify-center text-center aspect-square transition-all duration-300 hover:-translate-y-2 group cursor-pointer animate-pulse-blue"
                 >
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-violet-500 transition-transform duration-300 group-hover:scale-110">
                     <Volume2 className="w-10 h-10" />
@@ -134,11 +134,24 @@ const VoiceServicesComponent = () => {
           0%, 100% { transform: translateY(0) scale(1); }
           50% { transform: translateY(-15px) scale(0.98); }
         }
+        @keyframes pulseBlue {
+          0%, 100% {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.15), 0 10px 30px -5px rgba(0,0,0,0.08);
+          }
+          50% {
+            border-color: rgba(59, 130, 246, 0.85);
+            box-shadow: 0 0 16px 4px rgba(59, 130, 246, 0.35), 0 20px 40px -5px rgba(59, 130, 246, 0.1);
+          }
+        }
         .animate-float-slow {
           animation: floatSlow 8s ease-in-out infinite;
         }
         .animate-float-fast {
           animation: floatFast 6s ease-in-out infinite;
+        }
+        .animate-pulse-blue {
+          animation: pulseBlue 2s infinite ease-in-out;
         }
       `}</style>
     </div>

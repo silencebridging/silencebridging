@@ -76,7 +76,7 @@ export default function BridgingSilenceHero() {
                 {/* Sign-to-Sauti Card (Navigates to /services/signToSpeech) */}
                 <div 
                   onClick={navigateToSignToSpeech}
-                  className="bg-white rounded-[2rem] shadow-[0_10px_35px_rgba(0,0,0,0.04)] border border-gray-100 w-40 sm:w-44 h-56 sm:h-64 flex flex-col justify-between items-center p-6 hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer"
+                  className="bg-white rounded-[2rem] shadow-[0_10px_35px_rgba(0,0,0,0.04)] border border-blue-200 w-40 sm:w-44 h-56 sm:h-64 flex flex-col justify-between items-center p-6 hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer animate-pulse-blue"
                 >
                   <div className="flex-grow flex items-center justify-center">
                     <Volume2 className="w-10 h-10 text-[#8b5cf6]" />
@@ -118,6 +118,21 @@ export default function BridgingSilenceHero() {
           
         </div>
       </div>
+      <style jsx>{`
+        @keyframes pulseBlue {
+          0%, 100% {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.15), 0 10px 35px rgba(0,0,0,0.04);
+          }
+          50% {
+            border-color: rgba(59, 130, 246, 0.85);
+            box-shadow: 0 0 16px 4px rgba(59, 130, 246, 0.35), 0 10px 35px rgba(59, 130, 246, 0.1);
+          }
+        }
+        .animate-pulse-blue {
+          animation: pulseBlue 2s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

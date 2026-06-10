@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import HeaderComponent from '@/components/navBar'
+import PromoBannerComponent from './_components/promoBanner'
 import VoiceServicesComponent from './_components/services'
 import ProblemSolutionComponent from './_components/description'
 import SignMuseumComponent from './_components/videos'
@@ -16,7 +17,7 @@ export default function HomePage() {
   const smoothTransition = { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
   
   return (
-    <div className="container mx-auto overflow-hidden">
+    <div className="w-full min-h-screen bg-[#f8fafc] overflow-hidden">
       {/* Header Entrance */}
       <motion.div
         initial={{ opacity: 0, y: -40 }}
@@ -24,6 +25,15 @@ export default function HomePage() {
         transition={smoothTransition}
       >
         <HeaderComponent />
+      </motion.div>
+
+      {/* Promo Banner Entrance */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...smoothTransition, delay: 0.1 }}
+      >
+        <PromoBannerComponent />
       </motion.div>
 
       {/* Voice Services Section Scroll Reveal */}
