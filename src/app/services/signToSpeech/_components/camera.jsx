@@ -346,7 +346,8 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                 if (handsRef.current && isCollectingRef.current) {
                   await handsRef.current.send({ image: videoRef.current });
                 }
-              }
+              },
+              facingMode: facingMode
             });
             cameraRef.current.start();
           } else {
@@ -369,7 +370,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
         handsRef.current.close();
       }
     };
-  }, [cameraEnabled, stream, isPaused, mediaPipeReady]);
+  }, [cameraEnabled, stream, isPaused, mediaPipeReady, facingMode]);
 
   const saveLandmarks = async (resetAfterSave = true) => {
     if (handLandmarks.length === 0) return;
@@ -444,17 +445,10 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
       setTimeout(async () => {
         try {
           const currentFacingMode = cameraModeOverride || facingMode;
-          let constraints = { 
-            video: true,
+          const constraints = { 
+            video: { facingMode: currentFacingMode },
             audio: false
           };
-          
-          if (currentFacingMode === 'environment') {
-            constraints = { 
-              video: { facingMode: 'environment' },
-              audio: false
-            };
-          }
           
           const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
           setStream(mediaStream);
