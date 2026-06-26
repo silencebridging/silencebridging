@@ -1,7 +1,9 @@
-"use client"
+'use client';
+
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import Link from 'next/link';
 
 const ProductsShowcase = () => {
   const [activeTab, setActiveTab] = useState('Get');
@@ -116,11 +118,13 @@ const ProductsShowcase = () => {
                 ))}
               </div>
 
-              {/* Action Button - outlined blue styling */}
               <div className="text-center mt-auto">
-                <button className={`w-full max-w-[200px] px-6 py-2.5 border rounded-full font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${product.buttonStyle}`}>
+                <Link 
+                  href="/contact"
+                  className={`w-full max-w-[200px] inline-block px-6 py-2.5 border rounded-full font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer text-center ${product.buttonStyle}`}
+                >
                   {product.buttonText}
-                </button>
+                </Link>
               </div>
             </div>
           ))}

@@ -48,25 +48,27 @@ export default function OverviewTab({
     <div className="space-y-8 animate-fadeIn">
       {/* Title */}
       <div>
-        <h1 className="text-2xl font-black text-gray-900">Dashboard Overview</h1>
-        <p className="text-gray-500 text-sm mt-1 font-medium">Real-time status indicators, model efficiency metrics, and operations summary.</p>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          Dashboard <span className="bg-gradient-to-r from-blue-600 to-[#8b5cf6] bg-clip-text text-transparent">Overview</span>
+        </h1>
+        <p className="text-slate-500 text-sm mt-1 font-semibold">Real-time status indicators, model efficiency metrics, and operations summary.</p>
       </div>
 
       {/* Database Seeder Option */}
       {isEmptyDatabase && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-fadeIn">
+        <div className="bg-gradient-to-r from-blue-550/10 to-indigo-550/10 backdrop-blur-md border border-blue-200/50 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-fadeIn">
           <div className="space-y-1">
-            <h3 className="font-extrabold text-blue-900 text-sm flex items-center gap-2">
+            <h3 className="font-extrabold text-blue-955 text-sm flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-blue-600 animate-pulse" /> Welcome to the Admin Portal!
             </h3>
-            <p className="text-xs text-blue-700 font-medium leading-relaxed">
+            <p className="text-xs text-blue-800 font-bold leading-relaxed">
               Your Supabase database is currently empty. Click the button to automatically write sample TSL signs, feedback reports, support tickets, and CMS announcements directly into your database.
             </p>
           </div>
           <button
             onClick={handleSeedDatabase}
             disabled={isSyncing}
-            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/10 flex items-center gap-2 disabled:opacity-50"
+            className="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-500 hover:to-indigo-550 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/10 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {isSyncing ? (
               <>
@@ -82,43 +84,43 @@ export default function OverviewTab({
       {/* Status Counters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card 1: Approved Signs */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl p-6 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-lg hover:border-slate-350/40 hover:-translate-y-0.5 transition-all duration-300 group">
           <div>
-            <span className="text-xs text-gray-500 uppercase tracking-wider font-bold">Approved Signs</span>
-            <h3 className="text-3xl font-black text-gray-900 mt-2">{tslSigns.filter(s => s.status === 'approved').length}</h3>
-            <div className="text-[10px] text-green-600 font-bold mt-2 flex items-center gap-1">
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-extrabold">Approved Signs</span>
+            <h3 className="text-3xl font-black text-slate-900 mt-2">{tslSigns.filter(s => s.status === 'approved').length}</h3>
+            <div className="text-[10px] text-emerald-600 font-extrabold mt-2.5 flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5 animate-pulse" /> Models Synchronized
             </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100/50 flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-105 transition-transform duration-300">
             <BookOpen className="w-6 h-6" />
           </div>
         </div>
 
         {/* Card 2: Actions Required */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl p-6 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-lg hover:border-slate-350/40 hover:-translate-y-0.5 transition-all duration-300 group">
           <div>
-            <span className="text-xs text-gray-500 uppercase tracking-wider font-bold">Actions Required</span>
-            <h3 className="text-3xl font-black text-gray-900 mt-2">{totalActionsNeeded}</h3>
-            <div className="text-[10px] text-amber-600 font-bold mt-2 flex items-center gap-1">
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-extrabold">Actions Required</span>
+            <h3 className="text-3xl font-black text-slate-900 mt-2">{totalActionsNeeded}</h3>
+            <div className="text-[10px] text-amber-600 font-extrabold mt-2.5 flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" /> Needs validation
             </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100/50 flex items-center justify-center text-amber-600 shadow-sm group-hover:scale-105 transition-transform duration-300">
             <ShieldAlert className="w-6 h-6" />
           </div>
         </div>
 
         {/* Card 3: Model Latency */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl p-6 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-lg hover:border-slate-350/40 hover:-translate-y-0.5 transition-all duration-300 group">
           <div>
-            <span className="text-xs text-gray-500 uppercase tracking-wider font-bold">Avg Model Latency</span>
-            <h3 className="text-3xl font-black text-gray-900 mt-2">{avgLatency} ms</h3>
-            <div className="text-[10px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-extrabold">Avg Model Latency</span>
+            <h3 className="text-3xl font-black text-slate-900 mt-2">{avgLatency} ms</h3>
+            <div className="text-[10px] text-emerald-600 font-extrabold mt-2.5 flex items-center gap-1">
               <CheckCircle className="w-3.5 h-3.5" /> High Performance
             </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100/50 flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-105 transition-transform duration-300">
             <Activity className="w-6 h-6" />
           </div>
         </div>

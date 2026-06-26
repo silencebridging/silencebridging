@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import Link from 'next/link';
 
 const ProblemSolutionComponent = () => {
   const { t } = useLanguage();
@@ -31,7 +32,7 @@ const ProblemSolutionComponent = () => {
               {t('desc_prob_content')}
             </p>
             
-            <button className="flex items-center space-x-4 bg-transparent border-0 p-0 cursor-pointer group">
+            <Link href="/dictionary" className="flex items-center space-x-4 bg-transparent border-0 p-0 cursor-pointer group">
               <div className="relative w-12 h-12 rounded-full bg-[#aec9f9] flex items-center justify-center shadow-[0_4px_14px_rgba(27,100,218,0.25)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(27,100,218,0.35)]">
                 <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
                   <div className="w-8 h-8 rounded-full bg-[#1b64da] flex items-center justify-center">
@@ -42,7 +43,7 @@ const ProblemSolutionComponent = () => {
               <span className="font-semibold text-[#1b64da] text-base group-hover:text-[#1552b9] transition-colors duration-300">
                 {t('desc_watch_video')}
               </span>
-            </button>
+            </Link>
           </div>
           
           {/* Right Illustration */}
@@ -92,7 +93,7 @@ const ProblemSolutionComponent = () => {
               {t('desc_sol_content')}
             </p>
             
-            <button className="flex items-center space-x-4 bg-transparent border-0 p-0 cursor-pointer group">
+            <Link href="/dictionary" className="flex items-center space-x-4 bg-transparent border-0 p-0 cursor-pointer group">
               <div className="relative w-12 h-12 rounded-full bg-[#aec9f9] flex items-center justify-center shadow-[0_4px_14px_rgba(27,100,218,0.25)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(27,100,218,0.35)]">
                 <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
                   <div className="w-8 h-8 rounded-full bg-[#1b64da] flex items-center justify-center">
@@ -104,7 +105,7 @@ const ProblemSolutionComponent = () => {
                 <span>{t('desc_watch_demo')}</span>
                 <span className="text-xl">🎯</span>
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>

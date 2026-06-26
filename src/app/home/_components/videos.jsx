@@ -1,8 +1,10 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Play } from 'lucide-react';
 import SponsorsSection from '@/components/sponsors';
 import { useLanguage } from '@/context/LanguageContext';
+import Link from 'next/link';
 
 const SignMuseumComponent = () => {
   const [activeVideo, setActiveVideo] = useState(2);
@@ -150,9 +152,9 @@ const SignMuseumComponent = () => {
               {t('vid_desc')}
             </p>
             
-            <button className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105">
+            <Link href="/dictionary" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105 inline-block">
               {t('vid_view_all')}
-            </button>
+            </Link>
           </div>
         </div>
         

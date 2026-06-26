@@ -552,8 +552,12 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col lg:flex-row font-sans relative overflow-x-hidden">
+    <div className="h-screen max-h-screen overflow-hidden bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#f8fafc] text-gray-900 flex flex-col lg:flex-row font-sans relative">
       
+      {/* Decorative background ambient glows for page uniformity */}
+      <div className="absolute top-[15%] left-[-15%] w-[50%] aspect-square rounded-full bg-blue-400/5 blur-[120px] pointer-events-none z-0" />
+      <div className="absolute top-[60%] right-[-15%] w-[50%] aspect-square rounded-full bg-purple-400/5 blur-[130px] pointer-events-none z-0" />
+
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
@@ -563,13 +567,13 @@ export default function AdminDashboard() {
       )}
 
       {/* 1. LEFT SIDEBAR PANEL */}
-      <aside className={`bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out
+      <aside className={`h-full bg-white/80 backdrop-blur-md border-r border-slate-200/50 flex flex-col shrink-0 transition-all duration-300 ease-in-out
         fixed lg:static inset-y-0 left-0 w-72 z-50 lg:z-10
         ${isSidebarOpen ? 'translate-x-0 lg:w-72 lg:opacity-100 lg:pointer-events-auto' : '-translate-x-full lg:translate-x-0 lg:w-0 lg:border-r-0 lg:opacity-0 lg:pointer-events-none'}
       `}>
         
         {/* Brand/Logo Header */}
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+        <div className="p-6 border-b border-slate-100/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white">
               <img src="/bridgingsilenceicon.jpeg" alt="Logo" className="w-full h-full object-cover" />
@@ -582,14 +586,14 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-1 shrink-0">
             <button 
               onClick={syncDatabase} 
-              className={`p-1.5 rounded-lg text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-all ${isSyncing ? 'animate-spin text-blue-600' : ''}`}
+              className={`p-1.5 rounded-lg text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-all cursor-pointer ${isSyncing ? 'animate-spin text-blue-600' : ''}`}
               title="Sync Database"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 rounded-lg text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-all"
+              className="p-1.5 rounded-lg text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-all cursor-pointer"
               title="Collapse Sidebar"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -623,9 +627,9 @@ export default function AdminDashboard() {
                   setIsSidebarOpen(false);
                 }
               }}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === item.id 
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/10' 
+                  ? 'bg-gradient-to-r from-blue-600 to-[#8b5cf6] text-white shadow-md shadow-indigo-600/10' 
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'
               }`}
             >
@@ -645,8 +649,8 @@ export default function AdminDashboard() {
         </nav>
 
         {/* User Card & Sign Out */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50/50">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200 mb-3 shadow-sm">
+        <div className="p-4 border-t border-slate-200/55 bg-slate-50/40">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 mb-3 shadow-sm">
             <div className="w-10 h-10 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-600 font-bold">
               {userProfile?.full_name?.charAt(0) || <User className="w-5 h-5" />}
             </div>
@@ -658,7 +662,7 @@ export default function AdminDashboard() {
           
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 transition-all"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 transition-all cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -670,12 +674,12 @@ export default function AdminDashboard() {
       <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
         
         {/* Top Mini Header */}
-        <header className="h-16 border-b border-gray-200 bg-white/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
+        <header className="h-16 border-b border-slate-200/50 bg-white/60 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
             {!isSidebarOpen && (
               <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-1.5 rounded-lg text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-all focus:outline-none"
+                className="p-1.5 rounded-lg text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-all focus:outline-none cursor-pointer"
                 title="Expand Sidebar"
               >
                 <Menu className="w-5 h-5" />
@@ -692,7 +696,7 @@ export default function AdminDashboard() {
             <div className="relative">
               <button 
                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                className="relative p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all focus:outline-none"
+                className="relative p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all focus:outline-none cursor-pointer"
               >
                 <Bell className="w-5 h-5" />
                 {notifications.length > 0 && (
@@ -729,7 +733,7 @@ export default function AdminDashboard() {
                               setActiveTab(n.tab);
                               setIsNotificationOpen(false);
                             }}
-                            className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3"
+                            className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3 cursor-pointer"
                           >
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0"></span>
                             <div>
@@ -746,10 +750,8 @@ export default function AdminDashboard() {
             </div>
 
             <a 
-              href="https://www.bridgingsilence.org/" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-bold bg-blue-50 border border-blue-100 px-3.5 py-1.5 rounded-xl transition-all"
+              href="/" 
+              className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-extrabold bg-blue-50 border border-blue-100/50 px-3.5 py-1.5 rounded-xl transition-all hover:scale-[1.02] cursor-pointer"
             >
               <span>View Main Site</span>
               <ExternalLink className="w-3.5 h-3.5" />
