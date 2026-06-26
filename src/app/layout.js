@@ -20,12 +20,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="overflow-x-hidden">
+    <html lang="en" className="overflow-x-hidden" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased m-0 p-0 w-full`}
+        suppressHydrationWarning
       >
         {/* Global wrapper with negative margins to combat any default spacing */}
         <div className="overflow-x-hidden w-screen max-w-[100vw] mx-[-1px]">

@@ -132,7 +132,7 @@ export default function ArticleDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col w-full bg-white">
+      <div className="min-h-screen flex flex-col w-full bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#f8fafc]">
         <HeaderComponent />
         <div className="flex-grow flex flex-col items-center justify-center py-32">
           <Loader2 className="w-10 h-10 text-[#1b64da] animate-spin mb-4" />
@@ -145,7 +145,7 @@ export default function ArticleDetailsPage() {
 
   if (!post) {
     return (
-      <div className="min-h-screen flex flex-col w-full bg-white">
+      <div className="min-h-screen flex flex-col w-full bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#f8fafc]">
         <HeaderComponent />
         <div className="flex-grow flex flex-col items-center justify-center py-32 max-w-md mx-auto text-center px-4">
           <h2 className="text-2xl font-black text-gray-800 mb-2">Article Not Found</h2>
@@ -163,7 +163,11 @@ export default function ArticleDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col w-full bg-white">
+    <div className="min-h-screen flex flex-col w-full bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#f8fafc] overflow-hidden relative">
+      {/* Decorative background ambient glows for page uniformity */}
+      <div className="absolute top-[15%] left-[-15%] w-[50%] aspect-square rounded-full bg-blue-400/10 blur-[120px] pointer-events-none z-0" />
+      <div className="absolute top-[60%] right-[-15%] w-[50%] aspect-square rounded-full bg-purple-400/10 blur-[130px] pointer-events-none z-0" />
+
       <HeaderComponent />
 
       <main className="flex-grow w-full relative">
@@ -231,7 +235,7 @@ export default function ArticleDetailsPage() {
         </article>
 
         {/* Shared Sponsors Section */}
-        <div className="w-full bg-white py-16 border-t border-gray-100">
+        <div className="w-full bg-transparent py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <SponsorsSection />
           </div>

@@ -59,7 +59,7 @@ export default function LibraryImages() {
   };
 
   return (
-    <section className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-[#f5f8ff] border-t border-gray-100">
+    <section className="w-full py-20 bg-transparent">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           

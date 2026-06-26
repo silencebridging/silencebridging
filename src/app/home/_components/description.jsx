@@ -9,9 +9,9 @@ const ProblemSolutionComponent = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="bg-white py-16 px-6 relative overflow-hidden">
+    <div className="bg-transparent py-20 px-6 relative overflow-hidden">
       {/* Background gradient decoration */}
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500 to-purple-600 opacity-20 rounded-tl-full"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-500 to-purple-600 opacity-10 rounded-tl-full pointer-events-none"></div>
       
       <div className="max-w-6xl mx-auto space-y-20">
         

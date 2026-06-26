@@ -33,9 +33,9 @@ const ProductsShowcase = () => {
   ];
 
   return (
-    <div className="bg-white py-16 px-4">
+    <div className="bg-transparent py-20 px-4">
       {/* Outer section wrapper card matching screenshot */}
-      <div className="bg-[#f4f5f6] rounded-[2.5rem] p-8 md:p-12 lg:p-16 shadow-[0_12px_40px_rgba(0,0,0,0.03)] border border-gray-100 relative max-w-6xl mx-auto overflow-hidden">
+      <div className="bg-white/70 backdrop-blur-md rounded-[2.5rem] p-8 md:p-12 lg:p-16 shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-200/60 relative max-w-6xl mx-auto overflow-hidden">
         
         {/* Blue top border */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#1b64da]"></div>

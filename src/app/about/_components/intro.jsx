@@ -69,7 +69,7 @@ export default function MissionSection() {
   ];
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-transparent">
       {/* Main Content Section */}
       <div className="container mx-auto px-4 sm:px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
@@ -130,7 +130,7 @@ export default function MissionSection() {
       </div>
 
       {/* Stats Section with animated gears */}
-      <div className="bg-[#1b64da] relative overflow-hidden">
+      <div className="bg-[#1b64da] relative overflow-hidden rounded-[2.5rem] max-w-6xl mx-auto shadow-[0_20px_50px_rgba(27,100,218,0.15)] my-12">
         {/* Gear background pattern */}
         <div className="absolute inset-0 pointer-events-none">
           {gears.map((gear, i) => (

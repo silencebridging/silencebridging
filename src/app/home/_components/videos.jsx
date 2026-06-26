@@ -55,11 +55,8 @@ const SignMuseumComponent = () => {
   };
 
   return (
-    <div className="bg-gray-50 py-20 px-6 relative overflow-hidden z-10 border-t border-gray-200/40">
+    <div className="bg-transparent py-20 px-6 relative overflow-hidden z-10">
       
-      {/* Subtle top divider to clearly separate from previous component */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gray-200/50"></div>
-
       {/* Bottom Left angled animated pills/capsules (cylinders) - matching the layout and opacity from the screenshot */}
       <div className="absolute bottom-[-80px] left-[-20px] md:bottom-[-140px] md:left-[-30px] flex gap-4 rotate-[40deg] opacity-95 pointer-events-none z-0">
         <div className="w-14 h-56 md:w-20 md:h-80 bg-[#00adef] rounded-full animate-float-slow" />

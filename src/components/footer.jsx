@@ -177,7 +177,7 @@ const Footer = () => {
 
   return (
     <>
-      <footer className="bg-gray-50 pt-12 pb-0 relative">
+      <footer className="bg-white/40 backdrop-blur-md border-t border-slate-200/40 pt-16 pb-0 relative">
         <div className="max-w-6xl mx-auto px-4">
           {/* Navigation Links */}
           <div className="flex flex-wrap justify-center items-center gap-8 mb-12">
