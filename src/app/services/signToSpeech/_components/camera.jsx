@@ -109,10 +109,34 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
             }
             setTranslatedText(combined);
           }
-          if (data.type === 'speak' && data.text) {
-            if ('speechSynthesis' in window) {
-              const u = new SpeechSynthesisUtterance(data.text);
-              speechSynthesis.speak(u);
+          if (data.type === 'speak') {
+            if (data.audio) {
+              try {
+                const audio = new Audio(`data:audio/wav;base64,${data.audio}`);
+                setIsPlayingAudio(true);
+                audio.onended = () => {
+                  setIsPlayingAudio(false);
+                };
+                audio.onerror = (err) => {
+                  console.error("Audio playback error:", err);
+                  setIsPlayingAudio(false);
+                };
+                audio.play().catch(err => {
+                  console.error("Audio play promise rejected:", err);
+                  setIsPlayingAudio(false);
+                });
+              } catch (err) {
+                console.error("Error playing backend audio:", err);
+                setIsPlayingAudio(false);
+              }
+            } else if (data.text) {
+              if ('speechSynthesis' in window) {
+                setIsPlayingAudio(true);
+                const u = new SpeechSynthesisUtterance(data.text);
+                u.onend = () => setIsPlayingAudio(false);
+                u.onerror = () => setIsPlayingAudio(false);
+                speechSynthesis.speak(u);
+              }
             }
           }
         } catch (e) {
@@ -194,6 +218,19 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   }, [isTranslating, isPaused, stream, facingMode]);
 
   const sendWSCommand = (command) => {
+    if (command === 'speak') {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        setIsPlayingAudio(true);
+        wsRef.current.send(JSON.stringify({ type: 'command', command: 'speak' }));
+      } else if (translatedText && 'speechSynthesis' in window) {
+        setIsPlayingAudio(true);
+        const utterance = new SpeechSynthesisUtterance(translatedText);
+        utterance.onend = () => setIsPlayingAudio(false);
+        utterance.onerror = () => setIsPlayingAudio(false);
+        speechSynthesis.speak(utterance);
+      }
+      return;
+    }
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'command', command }));
     }
@@ -572,12 +609,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   };
 
   const handlePlayAudioSpeech = () => {
-    if (translatedText && 'speechSynthesis' in window) {
-      setIsPlayingAudio(true);
-      const utterance = new SpeechSynthesisUtterance(translatedText);
-      utterance.onend = () => setIsPlayingAudio(false);
-      speechSynthesis.speak(utterance);
-    }
+    sendWSCommand('speak');
   };
 
   return (

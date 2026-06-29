@@ -53,11 +53,20 @@ export default function TranslationOutput({ translatedText, setTranslatedText, o
   };
 
   const handlePlayAudio = () => {
-    if (translatedText && 'speechSynthesis' in window) {
-      setIsPlaying(true);
-      const utterance = new SpeechSynthesisUtterance(translatedText);
-      utterance.onend = () => setIsPlaying(false);
-      speechSynthesis.speak(utterance);
+    if (translatedText) {
+      if (onCommand) {
+        setIsPlaying(true);
+        onCommand('speak');
+        // Fallback safety timeout to reset isPlaying state (roughly 80ms per character, minimum 3s)
+        const duration = Math.max(3000, translatedText.length * 80);
+        setTimeout(() => setIsPlaying(false), duration);
+      } else if ('speechSynthesis' in window) {
+        setIsPlaying(true);
+        const utterance = new SpeechSynthesisUtterance(translatedText);
+        utterance.onend = () => setIsPlaying(false);
+        utterance.onerror = () => setIsPlaying(false);
+        speechSynthesis.speak(utterance);
+      }
     }
   };
 
