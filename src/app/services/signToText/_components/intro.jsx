@@ -1,5 +1,7 @@
 'use client';
 
+const WORDS = ['ALAMA', 'ASUBUHI', 'HABARI', 'JINA', 'JIONI', 'KUJITAMBULISHA', 'LANGU', 'LUGHA', 'MCHANA', 'SHIKAMOO', 'YAKO'];
+
 export default function RealTimeTextTranslator() {
   return (
     <div className="bg-white py-16 px-6">
@@ -24,21 +26,47 @@ export default function RealTimeTextTranslator() {
           </div>
         </div>
 
-        {/* Supported Vocabulary Section */}
+        {/* Supported Vocabulary Carousel */}
         <div className="mt-10 pt-8 border-t border-gray-100">
-          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Supported Swahili Vocabulary (Words Mode)</h4>
-          <div className="flex flex-wrap gap-2.5">
-            {['ALAMA', 'ASUBUHI', 'HABARI', 'JINA', 'JIONI', 'KUJITAMBULISHA', 'LANGU', 'LUGHA', 'MCHANA', 'SHIKAMOO', 'YAKO'].map((word) => (
-              <span 
-                key={word} 
-                className="bg-blue-50/70 text-blue-600 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-default uppercase shadow-sm hover:scale-105"
-              >
-                {word}
-              </span>
-            ))}
+          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-5">Supported Swahili Vocabulary (Words Mode)</h4>
+          
+          <div className="relative overflow-hidden" style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}>
+            <div className="flex gap-5 animate-marquee whitespace-nowrap">
+              {/* First set */}
+              {WORDS.map((word) => (
+                <span 
+                  key={`a-${word}`}
+                  className="inline-flex items-center bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 border border-blue-200/60 px-6 py-3.5 rounded-2xl text-base font-extrabold uppercase shadow-md hover:shadow-lg hover:scale-110 hover:border-blue-300 transition-all duration-300 cursor-default select-none flex-shrink-0"
+                >
+                  {word}
+                </span>
+              ))}
+              {/* Duplicate set for seamless loop */}
+              {WORDS.map((word) => (
+                <span 
+                  key={`b-${word}`}
+                  className="inline-flex items-center bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 border border-blue-200/60 px-6 py-3.5 rounded-2xl text-base font-extrabold uppercase shadow-md hover:shadow-lg hover:scale-110 hover:border-blue-300 transition-all duration-300 cursor-default select-none flex-shrink-0"
+                >
+                  {word}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          animation: marquee 25s linear infinite;
+        }
+        .animate-marquee:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 }
