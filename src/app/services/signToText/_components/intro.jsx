@@ -23,6 +23,21 @@ export default function RealTimeTextTranslator() {
             </p>
           </div>
         </div>
+
+        {/* Supported Vocabulary Section */}
+        <div className="mt-10 pt-8 border-t border-gray-100">
+          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Supported Swahili Vocabulary (Words Mode)</h4>
+          <div className="flex flex-wrap gap-2.5">
+            {['ALAMA', 'ASUBUHI', 'HABARI', 'JINA', 'JIONI', 'KUJITAMBULISHA', 'LANGU', 'LUGHA', 'MCHANA', 'SHIKAMOO', 'YAKO'].map((word) => (
+              <span 
+                key={word} 
+                className="bg-blue-50/70 text-blue-600 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-default uppercase shadow-sm hover:scale-105"
+              >
+                {word}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

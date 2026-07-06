@@ -664,14 +664,14 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                         width: "100%",
                         height: "100%",
                         objectFit: isFullscreen ? "cover" : "contain",
-                        transform: `scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
+                        transform: `scaleX(${facingMode === 'user' ? -1 : 1}) scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
                       }}
                     />
                     <canvas
                       ref={canvasRef}
                       className="absolute top-0 left-0 w-full h-full pointer-events-none"
                       style={{
-                        transform: `scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
+                        transform: `scaleX(${facingMode === 'user' ? -1 : 1}) scale(${zoom === '0.5x' ? '0.5' : zoom === '1x' ? '1' : '2'})`,
                       }}
                     />
                     
