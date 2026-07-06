@@ -28,6 +28,8 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isCardCollapsed, setIsCardCollapsed] = useState(false);
   const [backendStatus, setBackendStatus] = useState('connecting');
+  const [recognitionMode, setRecognitionMode] = useState('letter'); // 'letter' | 'word'
+  const [isHandDetected, setIsHandDetected] = useState(false);
 
   const handsRef = useRef(null);
   const cameraRef = useRef(null);
@@ -40,11 +42,13 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   const isPausedRef = useRef(false);
   const isCollectingRef = useRef(false);
   const isPredictingRef = useRef(false);
+  const recognitionModeRef = useRef('letter');
 
   useEffect(() => { isTranslatingRef.current = isTranslating; }, [isTranslating]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
   useEffect(() => { isCollectingRef.current = isCollecting; }, [isCollecting]);
   useEffect(() => { isPredictingRef.current = isPredicting; }, [isPredicting]);
+  useEffect(() => { recognitionModeRef.current = recognitionMode; }, [recognitionMode]);
 
   // Lock scroll when immersive fullscreen is active
   useEffect(() => {
@@ -62,7 +66,10 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const res = await fetch('https://web-production-f2f32.up.railway.app/', { method: 'GET' });
+        const activeUrl = recognitionMode === 'word'
+          ? 'https://web-production-78279.up.railway.app/'
+          : 'https://web-production-f2f32.up.railway.app/';
+        const res = await fetch(activeUrl, { method: 'GET' });
         if (res.ok || res.status === 200) {
           setBackendStatus('connected');
         } else {
@@ -75,12 +82,15 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
 
     checkBackend();
     const interval = setInterval(checkBackend, 15000);
-  }, []);
+    return () => clearInterval(interval);
+  }, [recognitionMode]);
 
   // Manage WebSocket connection during translation
   useEffect(() => {
     if (isTranslating && !isPaused && stream) {
-      const wsUrl = 'wss://web-production-f2f32.up.railway.app/ws';
+      const wsUrl = recognitionMode === 'word'
+        ? 'wss://web-production-78279.up.railway.app/ws'
+        : 'wss://web-production-f2f32.up.railway.app/ws';
       console.log('Connecting to WebSocket:', wsUrl);
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -96,15 +106,24 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
             if (data.letter !== undefined) {
               setPredictedLetter(data.letter);
             }
+            if (data.hand_detected !== undefined) {
+              setIsHandDetected(data.hand_detected);
+            }
             
             // Build the translation string
-            let combined = '';
-            if (data.sentence) combined += data.sentence;
-            if (data.word) {
-              if (combined) combined += ' ';
-              combined += data.word;
+            if (recognitionMode === 'word') {
+              // Word model returns fully completed Swahili sentence directly in data.sentence
+              setTranslatedText(data.sentence || '');
+            } else {
+              // Original letter-by-letter building logic
+              let combined = '';
+              if (data.sentence) combined += data.sentence;
+              if (data.word) {
+                if (combined) combined += ' ';
+                combined += data.word;
+              }
+              setTranslatedText(combined);
             }
-            setTranslatedText(combined);
           }
         } catch (e) {
           console.error('WebSocket message parsing error:', e);
@@ -182,7 +201,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
         }
       };
     }
-  }, [isTranslating, isPaused, stream, facingMode]);
+  }, [isTranslating, isPaused, stream, facingMode, recognitionMode]);
 
   const sendWSCommand = (command) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -204,6 +223,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   };
 
   const predictLetterFromLandmarks = async (landmarks) => {
+    if (recognitionMode !== 'letter') return;
     if (!landmarks || landmarks.length === 0 || isPredictingRef.current) return;
     
     try {
@@ -251,6 +271,9 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   };
 
   const handleHandResults = (results) => {
+    const hasHand = results && results.multiHandLandmarks && results.multiHandLandmarks.length > 0;
+    setIsHandDetected(hasHand);
+    
     if (!results || !results.multiHandLandmarks) return;
 
     const canvas = canvasRef.current;
@@ -274,7 +297,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
             setLandmarkCount(prev => prev + 1);
           }
           
-          if (isTranslatingRef.current && !isPausedRef.current) {
+          if (isTranslatingRef.current && !isPausedRef.current && recognitionModeRef.current === 'letter') {
             const now = Date.now();
             if (!isPredictingRef.current && (now - lastPredictionTimeRef.current > 1200)) {
               lastPredictionTimeRef.current = now;
@@ -576,13 +599,38 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
             
             {/* Standard Header (hidden in fullscreen) */}
             {!isFullscreen && (
-              <div className="bg-gray-200 px-6 py-4 flex items-center justify-between">
+              <div className="bg-gray-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-3">
                   <Settings className="w-6 h-6 text-gray-700" />
+                  <h2 className="text-xl font-semibold">
+                    <span className="text-blue-500">Camera</span> Input
+                  </h2>
                 </div>
-                <h2 className="text-xl font-semibold">
-                  <span className="text-blue-500">Camera</span> Input
-                </h2>
+
+                {/* Recognition Mode Selector Toggle */}
+                <div className="flex items-center bg-white/80 p-1 rounded-xl border border-gray-300/40 shadow-sm">
+                  <button
+                    onClick={() => setRecognitionMode('letter')}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
+                      recognitionMode === 'letter'
+                        ? 'bg-blue-600 text-white shadow'
+                        : 'text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    Alphabet (Letters)
+                  </button>
+                  <button
+                    onClick={() => setRecognitionMode('word')}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
+                      recognitionMode === 'word'
+                        ? 'bg-blue-600 text-white shadow'
+                        : 'text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    Vocabulary (Words)
+                  </button>
+                </div>
+
                 <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
                   <div className={`w-2 h-2 rounded-full ${
                     backendStatus === 'connected' ? 'bg-green-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse' : 
@@ -728,7 +776,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                             </div>
                           </div>
 
-                          {/* Live letter detection feedback */}
+                           {/* Live letter/word detection feedback */}
                           {isTranslating && !isPaused && (
                             <div className="bg-blue-50 border border-blue-100 rounded-xl p-2 mb-3 flex items-center gap-2.5">
                               <div className="w-8 h-8 bg-[#1b64da] rounded-lg flex items-center justify-center flex-shrink-0 shadow">
@@ -736,18 +784,20 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                                   {isPredicting ? (
                                     <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                   ) : (
-                                    predictedLetter || '?'
+                                    predictedLetter || (isHandDetected ? '👋' : '?')
                                   )}
                                 </span>
                               </div>
                               <div>
-                                <div className="text-[8px] font-bold text-gray-400 uppercase">Live Letter</div>
+                                <div className="text-[8px] font-bold text-gray-400 uppercase">
+                                  {recognitionMode === 'word' ? 'Live Word' : 'Live Letter'}
+                                </div>
                                 <div className="text-[10px] font-bold text-[#1b64da]">
-                                  {isPredicting ? 'Analyzing...' : predictedLetter ? `Letter "${predictedLetter}"` : 'Make a sign'}
+                                  {isPredicting ? 'Analyzing...' : predictedLetter ? `${recognitionMode === 'word' ? 'Word' : 'Letter'} "${predictedLetter}"` : isHandDetected ? 'Hand detected' : 'Make a sign'}
                                 </div>
                               </div>
                               
-                              {predictedLetter && (
+                              {predictedLetter && recognitionMode === 'letter' && (
                                 <button 
                                   onClick={() => setTranslatedText(prev => prev + predictedLetter)}
                                   className="ml-auto bg-[#1b64da] hover:bg-[#1b64da]/90 text-white text-[9px] font-bold px-2 py-0.5 rounded transition-all"
@@ -755,6 +805,20 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                                   Add
                                 </button>
                               )}
+                            </div>
+                          )}
+
+                          {/* Supported vocabulary helper in fullscreen desktop card */}
+                          {recognitionMode === 'word' && (
+                            <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-2.5 mb-3">
+                              <div className="text-[8px] font-bold text-[#1b64da] uppercase tracking-wider mb-1.5">Supported Words</div>
+                              <div className="flex flex-wrap gap-1">
+                                {['ALAMA', 'ASUBUHI', 'HABARI', 'JINA', 'JIONI', 'KUJITAMBULISHA', 'LANGU', 'LUGHA', 'MCHANA', 'SHIKAMOO', 'YAKO'].map(w => (
+                                  <span key={w} className="bg-white px-2 py-0.5 rounded text-[8px] font-bold text-gray-600 border border-gray-200/50 shadow-sm">
+                                    {w}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           )}
 
@@ -855,6 +919,30 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                         <div className="text-white text-[10px] font-bold hidden lg:block border-r border-white/10 pr-3 mr-1">
                           CTRL
                         </div>
+
+                        {/* Immersive Mode Toggle Selector */}
+                        <div className="flex items-center bg-white/10 p-0.5 rounded-xl border border-white/5 shadow-inner">
+                          <button
+                            onClick={() => setRecognitionMode('letter')}
+                            className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all duration-150 cursor-pointer ${
+                              recognitionMode === 'letter'
+                                ? 'bg-blue-600 text-white shadow'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            Letters
+                          </button>
+                          <button
+                            onClick={() => setRecognitionMode('word')}
+                            className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all duration-150 cursor-pointer ${
+                              recognitionMode === 'word'
+                                ? 'bg-blue-600 text-white shadow'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            Words
+                          </button>
+                        </div>
                         
                         {/* Toggle Camera On/Off */}
                         <button
@@ -925,22 +1013,39 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
 
               {/* Standard Mode predicted sign helper below the camera */}
               {isTranslating && !isPaused && !isFullscreen && (
-                <div className="mt-4 p-4 bg-gray-100 rounded-xl flex items-center">
-                  <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mr-4">
-                    <span className="text-white text-3xl font-bold">
-                      {isPredicting ? (
-                        <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        predictedLetter || '?'
-                      )}
-                    </span>
+                <div className="mt-4 space-y-4">
+                  <div className="p-4 bg-gray-100 rounded-xl flex items-center">
+                    <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mr-4">
+                      <span className="text-white text-3xl font-bold">
+                        {isPredicting ? (
+                          <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          predictedLetter || (isHandDetected ? '👋' : '?')
+                        )}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-sm">
+                        {recognitionMode === 'word' ? 'Predicted Word' : 'Predicted Letter'}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {isPredicting ? 'Analyzing hand gesture...' : predictedLetter ? `${recognitionMode === 'word' ? 'Word' : 'Letter'} "${predictedLetter}" detected` : isHandDetected ? 'Hand detected' : recognitionMode === 'word' ? 'Make a sign to predict words' : 'Make a sign with your hand'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-gray-800 text-sm">Predicted Letter</h4>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {isPredicting ? 'Analyzing hand position...' : predictedLetter ? `Letter "${predictedLetter}" detected` : 'Make a sign with your hand'}
-                    </p>
-                  </div>
+
+                  {recognitionMode === 'word' && (
+                    <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
+                      <h5 className="text-xs font-bold text-[#1b64da] uppercase tracking-wider mb-2">Supported Swahili Vocabulary</h5>
+                      <div className="flex flex-wrap gap-1.5">
+                        {['ALAMA', 'ASUBUHI', 'HABARI', 'JINA', 'JIONI', 'KUJITAMBULISHA', 'LANGU', 'LUGHA', 'MCHANA', 'SHIKAMOO', 'YAKO'].map(w => (
+                          <span key={w} className="bg-white px-2.5 py-1 rounded-lg text-[10px] font-bold text-gray-600 border border-gray-200 shadow-sm">
+                            {w}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -155,6 +155,13 @@ export default function TranslationOutput({ translatedText, setTranslatedText, o
                         <span className="text-sm font-semibold">{isPlaying ? 'Playing...' : 'Play'}</span>
                       </button>
                       <button
+                        onClick={() => setTranslatedText(prev => prev + ' ')}
+                        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        <span className="text-sm font-semibold font-sans">␣ Space</span>
+                      </button>
+
+                      <button
                         onClick={handleDeleteLetter}
                         className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
                       >
