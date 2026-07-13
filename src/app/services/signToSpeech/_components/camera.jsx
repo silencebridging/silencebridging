@@ -68,8 +68,8 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
     const checkBackend = async () => {
       try {
         const activeUrl = recognitionMode === 'word'
-          ? 'https://web-production-78279.up.railway.app/'
-          : 'https://web-production-f2f32.up.railway.app/';
+          ? 'https://productionmodel-production.up.railway.app/'
+          : 'https://productionmodel-production.up.railway.app/';
         const res = await fetch(activeUrl, { method: 'GET' });
         if (res.ok || res.status === 200) {
           setBackendStatus('connected');
@@ -91,8 +91,8 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   useEffect(() => {
     if (isTranslating && !isPaused && stream) {
       const wsUrl = recognitionMode === 'word'
-        ? 'wss://web-production-78279.up.railway.app/ws'
-        : 'wss://web-production-f2f32.up.railway.app/ws';
+        ? 'wss://productionmodel-production.up.railway.app/ws'
+        : 'wss://productionmodel-production.up.railway.app/ws';
       console.log('Connecting to WebSocket:', wsUrl);
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -281,7 +281,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
         landmark.z
       ]);
       
-      const response = await fetch('https://web-production-f2f32.up.railway.app/predict', {
+      const response = await fetch('https://productionmodel-production.up.railway.app/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ landmarks: formattedLandmarks })
