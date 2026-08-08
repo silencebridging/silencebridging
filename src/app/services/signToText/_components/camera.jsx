@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Settings, RefreshCw, Save, AlertCircle, Maximize2, Minimize2, Copy, Download, Trash2, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { MODEL_WS_URL, MODEL_HTTP_URL } from '@/lib/config';
 
 const MediaPipeLoader = dynamic(
   () => import('./MediaPipeLoader'),
@@ -66,9 +67,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const activeUrl = recognitionMode === 'word'
-          ? 'https://productionmodel-production.up.railway.app/'
-          : 'https://productionmodel-production.up.railway.app/';
+        const activeUrl = `${MODEL_HTTP_URL}/`;
         const res = await fetch(activeUrl, { method: 'GET' });
         if (res.ok || res.status === 200) {
           setBackendStatus('connected');
@@ -88,9 +87,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   // Manage WebSocket connection during translation
   useEffect(() => {
     if (isTranslating && !isPaused && stream) {
-      const wsUrl = recognitionMode === 'word'
-        ? 'wss://productionmodel-production.up.railway.app/ws'
-        : 'wss://productionmodel-production.up.railway.app/ws';
+      const wsUrl = MODEL_WS_URL;
       console.log('Connecting to WebSocket:', wsUrl);
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -236,7 +233,7 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
         landmark.z
       ]);
       
-      const response = await fetch('https://productionmodel-production.up.railway.app/predict', {
+      const response = await fetch(`${MODEL_HTTP_URL}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ landmarks: formattedLandmarks })
