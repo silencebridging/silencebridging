@@ -100,26 +100,28 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'prediction' || data.type === 'state_update') {
-            if (data.letter !== undefined) {
-              setPredictedLetter(data.letter);
-            }
             if (data.hand_detected !== undefined) {
               setIsHandDetected(data.hand_detected);
             }
             
             // Build the translation string
             if (recognitionMode === 'word') {
-              // Word model returns fully completed Swahili sentence directly in data.sentence
-              setTranslatedText(data.sentence || '');
-            } else {
-              // Original letter-by-letter building logic
-              let combined = '';
-              if (data.sentence) combined += data.sentence;
-              if (data.word) {
-                if (combined) combined += ' ';
-                combined += data.word;
+              if (data.word || data.letter) {
+                setPredictedLetter(data.word || data.letter);
               }
-              setTranslatedText(combined);
+              if (data.sentence !== undefined) {
+                setTranslatedText(data.sentence || '');
+              }
+            } else {
+              // Letter Mode: Only accept single-character letters (length === 1)
+              if (data.letter && typeof data.letter === 'string' && data.letter.length === 1) {
+                setPredictedLetter(data.letter);
+                setTranslatedText(prev => {
+                  const lastChar = prev.slice(-1);
+                  if (lastChar === data.letter) return prev;
+                  return prev + data.letter;
+                });
+              }
             }
           }
         } catch (e) {
@@ -207,6 +209,14 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
     if (command === 'clear') {
       setTranslatedText('');
       setPredictedLetter('');
+    } else if (command === 'delete_letter' || command === 'delete') {
+      setTranslatedText(prev => prev.slice(0, -1));
+    } else if (command === 'delete_word') {
+      setTranslatedText(prev => {
+        const words = prev.trim().split(/\s+/);
+        words.pop();
+        return words.join(' ');
+      });
     }
   };
 
@@ -245,10 +255,10 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
       }
 
       const data = await response.json();
-      setPredictedLetter(data.letter);
       
-      // Auto-append predicted letter if it changes
-      if (data.letter) {
+      // Auto-append predicted letter if single character
+      if (data.letter && typeof data.letter === 'string' && data.letter.length === 1) {
+        setPredictedLetter(data.letter);
         setTranslatedText(prev => {
           const lastChar = prev.slice(-1);
           if (lastChar === data.letter) return prev;
