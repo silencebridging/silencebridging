@@ -67,9 +67,11 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const activeUrl = recognitionMode === 'word'
-          ? 'https://productionmodel-production.up.railway.app/'
-          : 'https://productionmodel-production.up.railway.app/';
+        const activeHost = recognitionMode === 'word'
+          ? (process.env.NEXT_PUBLIC_WORD_MODEL_HTTP_URL || 'https://model.bridgingsilence.org')
+          : (process.env.NEXT_PUBLIC_LETTER_MODEL_HTTP_URL || 'https://letters.bridgingsilence.org');
+        const baseUrl = activeHost.replace(/\/$/, '');
+        const activeUrl = `${baseUrl}/`;
         const res = await fetch(activeUrl, { method: 'GET' });
         if (res.ok || res.status === 200) {
           setBackendStatus('connected');
@@ -91,9 +93,9 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   useEffect(() => {
     if (isTranslating && !isPaused && stream) {
       const wsUrl = recognitionMode === 'word'
-        ? 'wss://productionmodel-production.up.railway.app/ws'
-        : 'wss://productionmodel-production.up.railway.app/ws';
-      console.log('Connecting to WebSocket:', wsUrl);
+        ? (process.env.NEXT_PUBLIC_WORD_MODEL_WS_URL || 'wss://model.bridgingsilence.org/ws')
+        : (process.env.NEXT_PUBLIC_LETTER_MODEL_WS_URL || 'wss://letters.bridgingsilence.org/ws');
+      console.log(`Connecting to WebSocket (${recognitionMode} mode):`, wsUrl);
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -114,17 +116,19 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
             
             // Build the translation string
             if (recognitionMode === 'word') {
-              // Word model returns fully completed Swahili sentence directly in data.sentence
-              setTranslatedText(data.sentence || '');
+              setTranslatedText(data.sentence || data.word || '');
             } else {
-              // Original letter-by-letter building logic
-              let combined = '';
-              if (data.sentence) combined += data.sentence;
-              if (data.word) {
-                if (combined) combined += ' ';
-                combined += data.word;
+              if (data.accumulated_text !== undefined) {
+                setTranslatedText(data.accumulated_text);
+              } else {
+                let combined = '';
+                if (data.sentence) combined += data.sentence;
+                if (data.word) {
+                  if (combined) combined += ' ';
+                  combined += data.word;
+                }
+                setTranslatedText(combined || data.letter || '');
               }
-              setTranslatedText(combined);
             }
           }
           if (data.type === 'speak') {
@@ -281,7 +285,8 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
         landmark.z
       ]);
       
-      const response = await fetch('https://productionmodel-production.up.railway.app/predict', {
+      const baseUrl = (process.env.NEXT_PUBLIC_LETTER_MODEL_HTTP_URL || 'https://letters.bridgingsilence.org').replace(/\/$/, '');
+      const response = await fetch(`${baseUrl}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ landmarks: formattedLandmarks })
@@ -402,7 +407,10 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
           if (window.Camera) {
             cameraRef.current = new window.Camera(videoRef.current, {
               onFrame: async () => {
-                if (handsRef.current && isCollectingRef.current) {
+                if (
+                  handsRef.current && 
+                  (isCollectingRef.current || (isTranslatingRef.current && !isPausedRef.current && recognitionModeRef.current === 'letter'))
+                ) {
                   await handsRef.current.send({ image: videoRef.current });
                 }
               },
