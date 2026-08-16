@@ -44,12 +44,18 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
   const isCollectingRef = useRef(false);
   const isPredictingRef = useRef(false);
   const recognitionModeRef = useRef('letter');
+  const deletedServerTextRef = useRef('');
+  const lastRawServerTextRef = useRef('');
 
   useEffect(() => { isTranslatingRef.current = isTranslating; }, [isTranslating]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
   useEffect(() => { isCollectingRef.current = isCollecting; }, [isCollecting]);
   useEffect(() => { isPredictingRef.current = isPredicting; }, [isPredicting]);
-  useEffect(() => { recognitionModeRef.current = recognitionMode; }, [recognitionMode]);
+  useEffect(() => { 
+    recognitionModeRef.current = recognitionMode;
+    deletedServerTextRef.current = '';
+    lastRawServerTextRef.current = '';
+  }, [recognitionMode]);
 
   // Lock scroll when immersive fullscreen is active
   useEffect(() => {
@@ -114,12 +120,13 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
               setIsHandDetected(data.hand_detected);
             }
             
-            // Build the translation string
+            // Extract raw prediction text from server message
+            let rawServerText = '';
             if (recognitionMode === 'word') {
-              setTranslatedText(data.sentence || data.word || '');
+              rawServerText = data.sentence || data.word || '';
             } else {
               if (data.accumulated_text !== undefined) {
-                setTranslatedText(data.accumulated_text);
+                rawServerText = data.accumulated_text;
               } else {
                 let combined = '';
                 if (data.sentence) combined += data.sentence;
@@ -127,8 +134,24 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                   if (combined) combined += ' ';
                   combined += data.word;
                 }
-                setTranslatedText(combined || data.letter || '');
+                rawServerText = combined || data.letter || '';
               }
+            }
+
+            lastRawServerTextRef.current = rawServerText || '';
+
+            if (rawServerText !== undefined) {
+              // Ignore incoming server text if it matches the exact pre-edit server snapshot
+              if (deletedServerTextRef.current && rawServerText === deletedServerTextRef.current) {
+                return;
+              }
+
+              // Once the server emits a new/updated prediction, clear the deleted snapshot
+              if (deletedServerTextRef.current && rawServerText !== deletedServerTextRef.current) {
+                deletedServerTextRef.current = '';
+              }
+
+              setTranslatedText(rawServerText);
             }
           }
           if (data.type === 'speak') {
@@ -257,8 +280,13 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
       wsRef.current.send(JSON.stringify({ type: 'command', command }));
     }
     if (command === 'clear') {
-      setTranslatedText('');
-      setPredictedLetter('');
+      handleClearText();
+    } else if (command === 'delete_letter') {
+      handleDeleteLetter();
+    } else if (command === 'delete_word') {
+      handleDeleteWord();
+    } else if (command === 'space') {
+      handleAddSpace();
     }
   };
 
@@ -642,6 +670,37 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
     sendWSCommand('speak');
   };
 
+  const markDeletedServerText = () => {
+    if (lastRawServerTextRef.current) {
+      deletedServerTextRef.current = lastRawServerTextRef.current;
+    }
+  };
+
+  const handleAddSpace = () => {
+    setTranslatedText(prev => (prev ? (prev.endsWith(' ') ? prev : prev + ' ') : ''));
+  };
+
+  const handleDeleteLetter = () => {
+    markDeletedServerText();
+    setTranslatedText(prev => prev.slice(0, -1));
+  };
+
+  const handleDeleteWord = () => {
+    markDeletedServerText();
+    setTranslatedText(prev => {
+      const trimmed = prev.trimEnd();
+      const lastSpaceIndex = trimmed.lastIndexOf(' ');
+      if (lastSpaceIndex === -1) return '';
+      return trimmed.slice(0, lastSpaceIndex + 1);
+    });
+  };
+
+  const handleClearText = () => {
+    markDeletedServerText();
+    setTranslatedText('');
+    setPredictedLetter('');
+  };
+
   return (
     <div className="bg-gray-50 relative">
       <MediaPipeLoader onReady={handleMediaPipeReady} />
@@ -892,25 +951,55 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                             )}
                           </div>
 
-                          {/* Copy / Speak Controls */}
-                          <div className="flex gap-2 mb-3">
-                            <button
-                              onClick={handleCopyTranslatedText}
-                              disabled={!translatedText}
-                              className="flex-1 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1b64da] text-[11px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
-                            >
-                              <Copy className="w-3 h-3" />
-                              Copy
-                            </button>
-                            
-                            <button
-                              onClick={handlePlayAudioSpeech}
-                              disabled={!translatedText || isPlayingAudio}
-                              className="flex-1 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#8b5cf6] text-[11px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
-                            >
-                              <Volume2 className="w-3 h-3" />
-                              {isPlayingAudio ? 'Speaking...' : 'Speak'}
-                            </button>
+                          {/* Copy / Speak & Editing Controls */}
+                          <div className="flex flex-col gap-2 mb-3">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleCopyTranslatedText}
+                                disabled={!translatedText}
+                                className="flex-1 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1b64da] text-[11px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1 cursor-pointer"
+                              >
+                                <Copy className="w-3 h-3" />
+                                Copy
+                              </button>
+                              
+                              <button
+                                onClick={handlePlayAudioSpeech}
+                                disabled={!translatedText || isPlayingAudio}
+                                className="flex-1 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#8b5cf6] text-[11px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1 cursor-pointer"
+                              >
+                                <Volume2 className="w-3 h-3" />
+                                {isPlayingAudio ? 'Speaking...' : 'Speak'}
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-1.5">
+                              <button
+                                onClick={handleAddSpace}
+                                className="py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10px] font-bold transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+                                title="Add space"
+                              >
+                                <span className="font-mono text-xs">␣</span> Space
+                              </button>
+
+                              <button
+                                onClick={handleDeleteLetter}
+                                disabled={!translatedText}
+                                className="py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+                                title="Delete last letter"
+                              >
+                                <span>⌫</span> Letter
+                              </button>
+
+                              <button
+                                onClick={handleDeleteWord}
+                                disabled={!translatedText}
+                                className="py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+                                title="Delete last word"
+                              >
+                                <span>🗑</span> Word
+                              </button>
+                            </div>
                           </div>
 
                           {/* Interactive Phrase Simulator */}
@@ -949,6 +1038,29 @@ const CameraInterface = forwardRef(({ translatedText, setTranslatedText }, ref) 
                           {translatedText || <span className="text-white/40 italic">Start signing to translate...</span>}
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
+                          <button 
+                            onClick={handleAddSpace} 
+                            className="px-1.5 py-1 hover:bg-white/10 rounded-lg text-white/90 font-mono text-[10px] font-bold transition-colors cursor-pointer"
+                            title="Add space"
+                          >
+                            ␣
+                          </button>
+                          <button 
+                            onClick={handleDeleteLetter} 
+                            disabled={!translatedText}
+                            className="px-1.5 py-1 hover:bg-white/10 rounded-lg text-amber-300 font-bold text-[10px] disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                            title="Delete letter"
+                          >
+                            ⌫
+                          </button>
+                          <button 
+                            onClick={handleDeleteWord} 
+                            disabled={!translatedText}
+                            className="px-1.5 py-1 hover:bg-white/10 rounded-lg text-red-300 font-bold text-[10px] disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                            title="Delete word"
+                          >
+                            Word
+                          </button>
                           <button 
                             onClick={handleCopyTranslatedText} 
                             disabled={!translatedText}
